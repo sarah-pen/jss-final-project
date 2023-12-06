@@ -2,3 +2,5 @@
 # This is recommended for files that you use for testing purposes, and anything else that could clutter the repo.
 
 test.py
+test.db
+output.txt
