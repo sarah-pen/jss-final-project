@@ -1,0 +1,6 @@
+# If you have a file that you don't want to get uploaded to the GitHub repo, you can list it here.
+# This is recommended for files that you use for testing purposes, and anything else that could clutter the repo.
+
+test.py
+test.db
+output.txt
