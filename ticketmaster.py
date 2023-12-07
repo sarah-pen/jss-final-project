@@ -5,7 +5,13 @@ import os
 # root URL : https://app.ticketmaster.com/{package}/{version}/{resource}.json?apikey=**{API key}
 
 
-def get_data(api_key, page):
+def get_url(root, apikey, artist):
+
+    full_url = root + "apikey=" + apikey + "&keyword=" + artist
+    return full_url
+
+# DONE
+def get_data(url):
     '''
     Check whether the 'params' dictionary has been specified. 
     Makes a request to access data with the 'url' and 'params' given, if any. 
@@ -16,11 +22,16 @@ def get_data(api_key, page):
 
     # https://app.ticketmaster.com/discovery/v2/events.json?apikey=A3phA47g5rC6uF9zpmgWGxlD7SCtsimG&keyword=Taylor%20Swift
     
-    resp = requests.get("https://app.ticketmaster.com/discovery/v2/events.json", params={"apikey": api_key, "attractionId": "K8vZ9175Tr0", "page": page})
-    data = resp.json()
-    return data
+    try:
+        resp = requests.get(url)
+        data = resp.json()
+        return data
+    
+    except:
+        return "Exception!"
 
     
+# DONE
 def write_json(filename, dict):
     '''
     Encodes dict into JSON format and writes
@@ -32,6 +43,7 @@ def write_json(filename, dict):
     f.close()
 
 
+# DONE
 def load_json(filename):
 
     '''
@@ -58,34 +70,77 @@ def load_json(filename):
 def cache_all_pages(url, filename):
     '''
     1. Checks if the page number is found in the dict return by `load_json`
-    2. If the page number does not exist in the dictionary, it makes a request (using get_swapi_info)
-    3. Add the data to the dictionary (the key is the page number (Ex: page 1) and the value is the results).
+    2. If the page number does not exist in the dictionary, it makes a request (using get_data)
+    3. Add the data to the dictionary (the key is the page number and the value is the results).
     4. Write out the dictionary to a file using write_json.
     '''
-    pass
+    
+    dct = load_json(filename)
+
+    page_num = 0
+    root_url = url
+
+    # while page isn't in dictionary yet
+    while page_num not in dct:
+
+        # data returned by url
+        info = get_data(url)
+
+        # if data is fruitful
+        if info != None:
+
+            # add data from "results" key to dictionary
+            dct["page " + str(page_num)] = info["_embedded"]
+            # if page isn't the last one
+            if "next" in info["_links"]:
+                # save "next" value as new url
+                page_num += 1
+                url = root_url + "&page=" + str(page_num)
+                # proceed to next page
+            else:
+                break
+        else:
+            break
+
+    write_json(filename, dct)
+
 
 def event_info(filename):
 
-    # dct = json.loads(resp.content)
-    # events = dct["_embedded"]["events"]
+    data = load_json(filename)
 
-    # for event in events:
-    #     city = event["_embedded"]["venues"][0]["city"]["name"]
+    events_d = {}
 
-    #     if "priceRanges" in event:
-    #         max_price = str(event["priceRanges"][0]["max"])
-    #         print(city + ": max " + max_price)
-    #     else:
-    #         print(city + ": none")
-    pass
+    for page, d in data.items():
+        
+        events = d["events"]
+        
+        for event in events:
+            if "_embedded" in event:
+                city = event["_embedded"]["venues"][0]["city"]["name"]
+            
+            else:
+                city = "No city"
 
+            if "priceRanges" in event:
+                max_price = str(event["priceRanges"][0]["max"])
+                print(city + ": max " + max_price)
+            else:
+                print(city + ": none")
     
+
 
 
 def main():
 
-    data = get_data("A3phA47g5rC6uF9zpmgWGxlD7SCtsimG", 2)
-    write_json("test.json", data)
+    root = "https://app.ticketmaster.com/discovery/v2/events.json?"
+    key = "A3phA47g5rC6uF9zpmgWGxlD7SCtsimG"
+
+    url = get_url(root, key, "Taylor_Swift")
+
+    cache_all_pages(url, "events.json")
+    event_info("events.json")
+    
 
 
 if __name__ == "__main__":
