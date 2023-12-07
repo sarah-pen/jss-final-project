@@ -74,7 +74,7 @@ def cache_all_pages(url, filename):
     3. Add the data to the dictionary (the key is the page number and the value is the results).
     4. Write out the dictionary to a file using write_json.
     '''
-    
+
     dct = load_json(filename)
 
     page_num = 0
@@ -111,22 +111,43 @@ def event_info(filename):
 
     events_d = {}
 
-    for page, d in data.items():
+    for d in data.values():
         
         events = d["events"]
         
         for event in events:
+
+            inner_d = {}
+            name = event["name"]
+
             if "_embedded" in event:
                 city = event["_embedded"]["venues"][0]["city"]["name"]
+                artist = event["_embedded"]["attractions"][0]["name"]
             
             else:
-                city = "No city"
+                city = "No city given"
+                artist = "No artist given"
+
+            inner_d["city"] = city
+            inner_d["artist"] = artist
 
             if "priceRanges" in event:
+                min_price = str(event["priceRanges"][0]["min"])
                 max_price = str(event["priceRanges"][0]["max"])
-                print(city + ": max " + max_price)
+                
             else:
-                print(city + ": none")
+                min_price = "No price data"
+                max_price = "No price data"
+
+            inner_d["min_price"] = min_price
+            inner_d["max_price"] = max_price
+
+            events_d[name] = inner_d
+
+    print(events_d)
+    return events_d
+
+
     
 
 
