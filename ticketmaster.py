@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import re
 
 # root URL : https://app.ticketmaster.com/{package}/{version}/{resource}.json?apikey=**{API key}
 
@@ -147,12 +148,11 @@ def event_info(filename, apikey):
 
             if "_links" in event:
                 venue_link = event["_links"]["venues"][0]["href"]
-                full_venue = "https://app.ticketmaster.com" + venue_link + "&apikey=" + apikey
+                link = re.findall(".*\?", venue_link)[0]
+                full_venue = "https://app.ticketmaster.com" + link + "&apikey=" + apikey
                 venue_resp = requests.get(full_venue).json()
-                if "errors" not in venue_resp:
-                    print(venue_resp["name"])
-                # venue_name = venue_resp["name"]
-                # inner_d["venue"] = venue_name
+                venue_name = venue_resp["name"]
+                inner_d["venue"] = venue_name
 
 
             inner_d["min_price"] = min_price
