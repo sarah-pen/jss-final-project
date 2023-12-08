@@ -38,9 +38,12 @@ def write_json(filename, dict):
     the JSON to filename to save the search results
     '''
 
-    f = open(filename, "w")
-    f.write(json.dumps(dict))
-    f.close()
+
+    with open(filename, 'w') as file:
+
+        file.truncate()
+        file.write(json.dumps(dict))
+        file.close()
 
 
 # DONE
@@ -81,7 +84,7 @@ def cache_all_pages(url, filename):
     root_url = url
 
     # while page isn't in dictionary yet
-    while page_num not in dct:
+    while True:
 
         # data returned by url
         info = get_data(url)
@@ -105,7 +108,7 @@ def cache_all_pages(url, filename):
     write_json(filename, dct)
 
 
-def event_info(filename):
+def event_info(filename, apikey):
 
     data = load_json(filename)
     events_d = {}
@@ -113,33 +116,44 @@ def event_info(filename):
     for d in data.values():
         
         events = d["events"]
+        lst = []
         
         for event in events:
 
-            lst = []
+
             inner_d = {}
             name = event["name"]
+            date = event["dates"]["start"]["localDate"]
 
             if "_embedded" in event:
                 # venue = event["_embedded"]["venues"][0]["name"]
                 city = event["_embedded"]["venues"][0]["city"]["name"]
-                artist = event["_embedded"]["attractions"][0]["name"]
+                # artist = event["_embedded"]["attractions"][0]["name"]
             
             else:
-                city = "No city given"
-                artist = "No artist given"
+                break
 
             # inner_d["venue"] = venue
             inner_d["city"] = city
-            inner_d["artist"] = artist
+            # inner_d["artist"] = artist
+            inner_d["date"] = date
 
             if "priceRanges" in event:
                 min_price = event["priceRanges"][0]["min"]
                 max_price = event["priceRanges"][0]["max"]
                 
             else:
-                min_price = "No price data"
-                max_price = "No price data"
+                break
+
+            if "_links" in event:
+                venue_link = event["_links"]["venues"][0]["href"]
+                full_venue = "https://app.ticketmaster.com" + venue_link + "&apikey=" + apikey
+                venue_resp = requests.get(full_venue).json()
+                if "errors" not in venue_resp:
+                    print(venue_resp["name"])
+                # venue_name = venue_resp["name"]
+                # inner_d["venue"] = venue_name
+
 
             inner_d["min_price"] = min_price
             inner_d["max_price"] = max_price
@@ -152,7 +166,6 @@ def event_info(filename):
 
 
 
-
 def main():
 
     root = "https://app.ticketmaster.com/discovery/v2/events.json?"
@@ -161,7 +174,7 @@ def main():
     url = get_url(root, key, "Taylor_Swift")
 
     cache_all_pages(url, "events.json")
-    event_info("events.json")
+    event_info("events.json", key)
     
 
 if __name__ == "__main__":
