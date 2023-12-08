@@ -108,7 +108,6 @@ def cache_all_pages(url, filename):
 def event_info(filename):
 
     data = load_json(filename)
-
     events_d = {}
 
     for d in data.values():
@@ -117,10 +116,12 @@ def event_info(filename):
         
         for event in events:
 
+            lst = []
             inner_d = {}
             name = event["name"]
 
             if "_embedded" in event:
+                # venue = event["_embedded"]["venues"][0]["name"]
                 city = event["_embedded"]["venues"][0]["city"]["name"]
                 artist = event["_embedded"]["attractions"][0]["name"]
             
@@ -128,12 +129,13 @@ def event_info(filename):
                 city = "No city given"
                 artist = "No artist given"
 
+            # inner_d["venue"] = venue
             inner_d["city"] = city
             inner_d["artist"] = artist
 
             if "priceRanges" in event:
-                min_price = str(event["priceRanges"][0]["min"])
-                max_price = str(event["priceRanges"][0]["max"])
+                min_price = event["priceRanges"][0]["min"]
+                max_price = event["priceRanges"][0]["max"]
                 
             else:
                 min_price = "No price data"
@@ -141,14 +143,13 @@ def event_info(filename):
 
             inner_d["min_price"] = min_price
             inner_d["max_price"] = max_price
+            lst.append(inner_d)
 
-            events_d[name] = inner_d
+            events_d[name] = lst
 
     print(events_d)
     return events_d
 
-
-    
 
 
 
@@ -162,7 +163,6 @@ def main():
     cache_all_pages(url, "events.json")
     event_info("events.json")
     
-
 
 if __name__ == "__main__":
     main()
