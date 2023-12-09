@@ -145,10 +145,17 @@ def insert_data(dict):
     
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    cur.execute('DROP TABLE IF EXISTS Events')
-    cur.execute('CREATE TABLE Events (name TEXT, city TEXT, venue TEXT, date TEXT, min_price INTEGER, max_price INTEGER)')
+    cur.execute('CREATE TABLE IF NOT EXISTS Events (show_id INTEGER PRIMARY KEY, name TEXT, city TEXT, venue TEXT, date TEXT, min_price INTEGER, max_price INTEGER)')
+
+    id = 0
 
     for name, shows in dict.items():
+
+        if id != 0 and id % 25 == 0:
+            break
+
+        # cur.execute("SELECT COUNT(*) FROM Events")
+        # id = cur.fetchone()
 
         for show in shows:
             city = show["city"]
@@ -156,7 +163,8 @@ def insert_data(dict):
             date = show["date"]
             min_price = show["min_price"]
             max_price = show["max_price"]
-            cur.execute('INSERT INTO Events (name, city, venue, date, min_price, max_price) VALUES (?, ?, ?, ?, ?, ?)', (name, city, venue, date, min_price, max_price))
+            cur.execute('INSERT OR IGNORE INTO Events (show_id, name, city, venue, date, min_price, max_price) VALUES (?, ?, ?, ?, ?, ?, ?)', (id, name, city, venue, date, min_price, max_price))
+            id += 1
 
     conn.commit()
     conn.close()
