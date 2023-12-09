@@ -74,7 +74,10 @@ def cache_all_pages(url, filename):
     '''
 
     dct = load_json(filename)
-    page_num = 0
+    if len(dct) == 0:
+        page_num = 0
+    else:
+        page_num = int(list(dct.keys())[-1][-1])
     root_url = url
 
     # while page isn't in dictionary yet
@@ -83,10 +86,9 @@ def cache_all_pages(url, filename):
         info = get_data(url)
         # if data is fruitful
         if info != None:
-            # add data from "results" key to dictionary
-            dct["page " + str(page_num)] = info["_embedded"]
             # if page isn't the last one
             if "next" in info["_links"]:
+                dct["page " + str(page_num)] = info["_embedded"]
                 # save "next" value as new url
                 page_num += 1
                 url = root_url + "&page=" + str(page_num)
@@ -97,6 +99,7 @@ def cache_all_pages(url, filename):
             break
 
     write_json(filename, dct)
+    # print(dct["page 1"]["events"][16])
 
 
 def event_info(filename):
@@ -106,7 +109,7 @@ def event_info(filename):
 
     for k in data:
         events = data[k]["events"]
-        lst = []
+        # lst = []
 
         for event in events:
             inner_d = {}
@@ -115,49 +118,45 @@ def event_info(filename):
             if "_embedded" in event:
                 city = event["_embedded"]["venues"][0]["city"]["name"]
                 artist = event["_embedded"]["attractions"][0]["name"]
-                # venue_url = event["_embedded"]["venues"][0]["url"]
-                # r = requests.get(venue_url)
-                # soup = BeautifulSoup(r.content, 'html.parser')
-                # venue_name = soup.find('h1', class_='sc-lmu4mw-6').text
-                # inner_d["venue"] = venue_name
+
+                inner_d["city"] = city
+                inner_d["artist"] = artist
+                inner_d["date"] = date
 
             else:
-                break
-
-            inner_d["city"] = city
-            inner_d["artist"] = artist
-            inner_d["date"] = date
+                pass
 
             if "priceRanges" in event:
                 min_price = event["priceRanges"][0]["min"]
                 max_price = event["priceRanges"][0]["max"] 
+                inner_d["min_price"] = min_price
+                inner_d["max_price"] = max_price
             else:
-                break
+                pass
 
             if "_links" in event:
-                # time.sleep(5)
                 venue_link = event["_links"]["venues"][0]["href"]
                 link = re.findall(".*\?", venue_link)[0]
                 full_venue = "https://app.ticketmaster.com" + link + "&apikey=" + key
                 venue_resp = requests.get(full_venue).json()
                 venue_name = venue_resp.get("name", "Error")
                 inner_d["venue"] = venue_name
+            else:
+                pass
 
-            inner_d["min_price"] = min_price
-            inner_d["max_price"] = max_price
-            lst.append(inner_d)
+            if name not in events_d:
+                events_d[name] = [inner_d]
+            else:
+                events_d[name].append(inner_d)
 
-            events_d[name] = lst
-
-    print(events_d["Taylor Swift | The Eras Tour"])
     return events_d
 
 def insert_data(dict):
     
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-    cur.execute('DROP TABLE IF EXISTS Events')
-    cur.execute('CREATE TABLE IF NOT EXISTS Events (show_id INTEGER PRIMARY KEY, artist TEXT, name TEXT, city TEXT, venue TEXT, date TEXT, min_price INTEGER, max_price INTEGER)')
+    # cur.execute('DROP TABLE IF EXISTS Events')
+    cur.execute('CREATE TABLE IF NOT EXISTS Events (show_id INTEGER PRIMARY KEY, artist TEXT, name TEXT, city TEXT, venue TEXT, date TEXT UNIQUE, min_price INTEGER, max_price INTEGER)')
     cur.execute('CREATE TABLE IF NOT EXISTS Cities (city_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
 
     # id = 0
@@ -174,10 +173,10 @@ def insert_data(dict):
             city = show["city"]
             artist = show["artist"]
             cur.execute('INSERT OR IGNORE INTO Cities (city_id, name) VALUES (NULL, ?)', (city,))
-            venue = show["venue"]
+            venue = show.get("venue", None)
             date = show["date"]
-            min_price = show["min_price"]
-            max_price = show["max_price"]
+            min_price = show.get("min_price", None)
+            max_price = show.get("max_price", None)
             cur.execute('INSERT OR IGNORE INTO Events (show_id, artist, name, city, venue, date, min_price, max_price) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)', (name, artist, city, venue, date, min_price, max_price))
             # id += 1
 
@@ -193,7 +192,7 @@ def main():
     url = get_url(root, "Taylor_Swift")
     cache_all_pages(url, "events.json")
     events = event_info("events.json")
-    # print(events)
+    print(events)
     insert_data(events)
     
 
