@@ -12,5 +12,11 @@ def build_database():
   lastfm.insert_data_into_table(artist_list[51:75])
   lastfm.insert_data_into_table(artist_list[76:100])
 
+  # TODO:
+  # Get Min/Max ticket prices for each artist (or null if artist isn't active)
+  # Genre(s) for each artist - make a pie chart
+  # Make another database that stores top songs and links to artist database
+  # Possibly most common locations for concerts
+
 def main():
   build_database()
