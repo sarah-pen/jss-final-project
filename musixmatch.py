@@ -11,8 +11,10 @@ base_url = "https://api.musixmatch.com/ws/1.1/"
 def cache_rating(artist_name, rating, database):
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
-    cursor.execute('CREATE TABLE IF NOT EXISTS Ratings (artist TEXT PRIMARY KEY, rating INTEGER)')
-    cursor.execute('INSERT OR REPLACE INTO Ratings (artist, rating) VALUES (?, ?)', (artist_name, rating))
+    cursor.execute("SELECT * FROM pragma_table_info('Artists') WHERE name='rating'")
+    if not cursor.fetchone():
+        cursor.execute('ALTER TABLE Artists ADD COLUMN rating INTEGER')
+    cursor.execute('INSERT OR REPLACE INTO Artists (name, rating) VALUES (?, ?)', (artist_name, rating))
     conn.commit()
     conn.close()
 
@@ -50,10 +52,18 @@ def get_artist_rating_from_musixmatch(artist_name, api_key):
     return "Error or artist not found"
 
 def main():
-    test_artists = ["Queen", "The Beatles", "Adele", "One Direction"]
-    for artist in test_artists:
+    #test_artists = ["Queen", "The Beatles", "Adele", "One Direction"]
+   # for artist in test_artists:
+        #rating = get_artist_rating_from_musixmatch(artist, api_key)
+        #print(f"Artist: {artist}, Rating: {rating}")
+    artists = get_artists_from_db(database)
+    for artist in artists:
         rating = get_artist_rating_from_musixmatch(artist, api_key)
-        print(f"Artist: {artist}, Rating: {rating}")
+        if rating is not None:
+            cache_rating(artist, rating, database)
+            print(f"Updated rating for Artist: {artist}, Rating: {rating}")
+        else:
+            print(f"Rating not found for Artist: {artist}")
 
 if __name__ == "__main__":
     main()
