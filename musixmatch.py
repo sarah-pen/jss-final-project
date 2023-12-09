@@ -8,7 +8,7 @@ api_key = "4ced0fe04de2090cb8f068ca309e8d96"
 base_url = "https://api.musixmatch.com/ws/1.1/"
 
 #creates a table if it doesn't exist and inserts or updates the artist's rating.
-def cache_rating(artist_name, rating, database='ratings.db'):
+def cache_rating(artist_name, rating, database):
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
     cursor.execute('CREATE TABLE IF NOT EXISTS Ratings (artist TEXT PRIMARY KEY, rating INTEGER)')
