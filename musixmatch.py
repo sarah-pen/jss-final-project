@@ -11,10 +11,16 @@ base_url = "https://api.musixmatch.com/ws/1.1/"
 def cache_rating(artist_name, rating, database):
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM pragma_table_info('Artists') WHERE name='rating'")
-    if not cursor.fetchone():
-        cursor.execute('ALTER TABLE Artists ADD COLUMN rating INTEGER')
-    cursor.execute('INSERT OR REPLACE INTO Artists (name, rating) VALUES (?, ?)', (artist_name, rating))
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS ArtistRatings (
+            artist TEXT PRIMARY KEY, 
+            rating INTEGER
+        )
+    ''')
+    cursor.execute('''
+        INSERT OR REPLACE INTO ArtistRatings (artist, rating) 
+        VALUES (?, ?)
+    ''', (artist_name, rating))
     conn.commit()
     conn.close()
 
