@@ -3,15 +3,23 @@ import json
 import os
 import re
 
-# root URL : https://app.ticketmaster.com/{package}/{version}/{resource}.json?apikey=**{API key}
 
+key = "A3phA47g5rC6uF9zpmgWGxlD7SCtsimG"
 
-def get_url(root, apikey, artist):
-
-    full_url = root + "apikey=" + apikey + "&keyword=" + artist
+def get_url(root, artist):
+    full_url = root + "apikey=" + key + "&keyword=" + artist
     return full_url
 
-# DONE
+# def get_artists():
+#     artists = []
+#     q = ""
+#     while q != "exit":
+#         answer = input("Name an artist/band currently touring (use _ instead of spaces) or 'exit': ")
+#         artists.append(answer)
+
+#     return artists
+
+
 def get_data(url):
     '''
     Check whether the 'params' dictionary has been specified. 
@@ -27,27 +35,23 @@ def get_data(url):
         resp = requests.get(url)
         data = resp.json()
         return data
-    
     except:
         return "Exception!"
 
     
-# DONE
+
 def write_json(filename, dict):
     '''
     Encodes dict into JSON format and writes
     the JSON to filename to save the search results
     '''
 
-
     with open(filename, 'w') as file:
-
         file.truncate()
         file.write(json.dumps(dict))
         file.close()
 
 
-# DONE
 def load_json(filename):
 
     '''
@@ -58,15 +62,11 @@ def load_json(filename):
     try:
         source_dir = os.path.dirname(__file__)
         full_path = os.path.join(source_dir, filename)
-
         f = open(full_path)
         contents = f.read()
         f.close()
-
         data = json.loads(contents)
-
         return data
-    
     except:
         return {}
     
@@ -80,19 +80,15 @@ def cache_all_pages(url, filename):
     '''
 
     dct = load_json(filename)
-
     page_num = 0
     root_url = url
 
     # while page isn't in dictionary yet
     while True:
-
         # data returned by url
         info = get_data(url)
-
         # if data is fruitful
         if info != None:
-
             # add data from "results" key to dictionary
             dct["page " + str(page_num)] = info["_embedded"]
             # if page isn't the last one
@@ -109,28 +105,23 @@ def cache_all_pages(url, filename):
     write_json(filename, dct)
 
 
-def event_info(filename, apikey):
+def event_info(filename):
 
     data = load_json(filename)
     events_d = {}
 
     for d in data.values():
-        
         events = d["events"]
         lst = []
-        
+
         for event in events:
-
-
             inner_d = {}
             name = event["name"]
             date = event["dates"]["start"]["localDate"]
-
             if "_embedded" in event:
                 # venue = event["_embedded"]["venues"][0]["name"]
                 city = event["_embedded"]["venues"][0]["city"]["name"]
                 # artist = event["_embedded"]["attractions"][0]["name"]
-            
             else:
                 break
 
@@ -141,15 +132,14 @@ def event_info(filename, apikey):
 
             if "priceRanges" in event:
                 min_price = event["priceRanges"][0]["min"]
-                max_price = event["priceRanges"][0]["max"]
-                
+                max_price = event["priceRanges"][0]["max"] 
             else:
                 break
 
             if "_links" in event:
                 venue_link = event["_links"]["venues"][0]["href"]
                 link = re.findall(".*\?", venue_link)[0]
-                full_venue = "https://app.ticketmaster.com" + link + "&apikey=" + apikey
+                full_venue = "https://app.ticketmaster.com" + link + "&apikey=" + key
                 venue_resp = requests.get(full_venue).json()
                 venue_name = venue_resp["name"]
                 inner_d["venue"] = venue_name
@@ -158,10 +148,9 @@ def event_info(filename, apikey):
             inner_d["min_price"] = min_price
             inner_d["max_price"] = max_price
             lst.append(inner_d)
-
             events_d[name] = lst
 
-    print(events_d)
+
     return events_d
 
 
@@ -169,12 +158,12 @@ def event_info(filename, apikey):
 def main():
 
     root = "https://app.ticketmaster.com/discovery/v2/events.json?"
-    key = "A3phA47g5rC6uF9zpmgWGxlD7SCtsimG"
 
-    url = get_url(root, key, "Taylor_Swift")
+    artist = input("Name an artist/band currently touring (use _ instead of spaces) or 'exit': ")
 
+    url = get_url(root, artist)
     cache_all_pages(url, "events.json")
-    event_info("events.json", key)
+    print(event_info("events.json"))
     
 
 if __name__ == "__main__":
