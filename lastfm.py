@@ -8,17 +8,21 @@ database = 'music.db'
 
 
 def insert_data_into_table(tracks_list):
+    '''
+    tracks_list is of the form {'artist': artist_name, 'track': track_name, 'album': album_name}
+    '''
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
 
-    cursor.execute('CREATE TABLE IF NOT EXISTS Artists (name TEXT)')
-    print("inserting artists...")
+    cursor.execute('CREATE TABLE IF NOT EXISTS Artists (int_key INTEGER, name TEXT)')
+    count = 1
     for item in tracks_list:
         artist = item['artist']
         cursor.execute('SELECT name FROM Artists WHERE name = ?', (artist,))
         existing_artist = cursor.fetchone()
         if not existing_artist:
-            cursor.execute('INSERT INTO Artists (name) VALUES (?)', (artist,))
+            cursor.execute('INSERT INTO Artists (name) VALUES (?, ?)', (artist, count))
+            count += 1
             print(f"Inserted {artist}")
         else:
             print(f"Artist {artist} already in table")
