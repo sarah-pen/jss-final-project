@@ -28,7 +28,7 @@ def cache_rating(artist_name, rating, database):
 def get_artists_from_db(database):
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
-    cursor.execute("SELECT name FROM Artists")  
+    cursor.execute("SELECT artist FROM ArtistRatings")  
     artists = cursor.fetchall()
     conn.close()
 
@@ -53,7 +53,7 @@ def get_artist_rating_from_musixmatch(artist_name, api_key):
             artist = artist_list[0].get("artist", {})
             artist_rating = artist.get("artist_rating", None)
             if artist_rating is not None:
-                cache_rating(artist_name, artist_rating)
+                add_or_update_artist_rating(database, artist_name, artist_rating)
             return artist_rating
     return "Error or artist not found"
 
@@ -66,7 +66,7 @@ def main():
     for artist in artists:
         rating = get_artist_rating_from_musixmatch(artist, api_key)
         if rating is not None:
-            cache_rating(artist, rating, database)
+            add_or_update_artist_rating(database, artist, rating)
             print(f"Updated rating for Artist: {artist}, Rating: {rating}")
         else:
             print(f"Rating not found for Artist: {artist}")
