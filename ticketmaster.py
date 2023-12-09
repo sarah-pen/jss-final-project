@@ -85,10 +85,10 @@ def cache_all_pages(url, filename):
         # data returned by url
         info = get_data(url)
         # if data is fruitful
-        if info != None:
+        if len(info) >= 20:
+            dct["page " + str(page_num)] = info["_embedded"]
             # if page isn't the last one
             if "next" in info["_links"]:
-                dct["page " + str(page_num)] = info["_embedded"]
                 # save "next" value as new url
                 page_num += 1
                 url = root_url + "&page=" + str(page_num)
@@ -134,7 +134,7 @@ def event_info(filename):
             else:
                 pass
 
-            if "_links" in event:
+            if "venues" in event["_links"]:
                 venue_link = event["_links"]["venues"][0]["href"]
                 link = re.findall(".*\?", venue_link)[0]
                 full_venue = "https://app.ticketmaster.com" + link + "&apikey=" + key
@@ -142,7 +142,7 @@ def event_info(filename):
                 venue_name = venue_resp.get("name", "Error")
                 inner_d["venue"] = venue_name
             else:
-                pass
+                continue
 
             if name not in events_d:
                 events_d[name] = [inner_d]
