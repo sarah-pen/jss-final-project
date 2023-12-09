@@ -2,22 +2,15 @@ import requests
 import json
 import os
 import re
+import sqlite3
 
 
 key = "A3phA47g5rC6uF9zpmgWGxlD7SCtsimG"
+database = "tour_shows.db"
 
 def get_url(root, artist):
     full_url = root + "apikey=" + key + "&keyword=" + artist
     return full_url
-
-# def get_artists():
-#     artists = []
-#     q = ""
-#     while q != "exit":
-#         answer = input("Name an artist/band currently touring (use _ instead of spaces) or 'exit': ")
-#         artists.append(answer)
-
-#     return artists
 
 
 def get_data(url):
@@ -37,7 +30,6 @@ def get_data(url):
         return data
     except:
         return "Exception!"
-
     
 
 def write_json(filename, dict):
@@ -119,13 +111,11 @@ def event_info(filename):
             name = event["name"]
             date = event["dates"]["start"]["localDate"]
             if "_embedded" in event:
-                # venue = event["_embedded"]["venues"][0]["name"]
                 city = event["_embedded"]["venues"][0]["city"]["name"]
                 # artist = event["_embedded"]["attractions"][0]["name"]
             else:
                 break
 
-            # inner_d["venue"] = venue
             inner_d["city"] = city
             # inner_d["artist"] = artist
             inner_d["date"] = date
@@ -144,26 +134,43 @@ def event_info(filename):
                 venue_name = venue_resp["name"]
                 inner_d["venue"] = venue_name
 
-
             inner_d["min_price"] = min_price
             inner_d["max_price"] = max_price
             lst.append(inner_d)
             events_d[name] = lst
 
-
     return events_d
 
+def insert_data(dict):
+    
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
+    cur.execute('DROP TABLE IF EXISTS Events')
+    cur.execute('CREATE TABLE Events (name TEXT, city TEXT, venue TEXT, date TEXT, min_price INTEGER, max_price INTEGER)')
+
+    for name, shows in dict.items():
+
+        for show in shows:
+            city = show["city"]
+            venue = show["venue"]
+            date = show["date"]
+            min_price = show["min_price"]
+            max_price = show["max_price"]
+            cur.execute('INSERT INTO Events (name, city, venue, date, min_price, max_price) VALUES (?, ?, ?, ?, ?, ?)', (name, city, venue, date, min_price, max_price))
+
+    conn.commit()
+    conn.close()
+    
 
 
 def main():
 
     root = "https://app.ticketmaster.com/discovery/v2/events.json?"
 
-    artist = input("Name an artist/band currently touring (use _ instead of spaces) or 'exit': ")
-
-    url = get_url(root, artist)
+    url = get_url(root, "Taylor_Swift")
     cache_all_pages(url, "events.json")
-    print(event_info("events.json"))
+    events = event_info("events.json")
+    insert_data(events)
     
 
 if __name__ == "__main__":
