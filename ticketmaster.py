@@ -3,12 +3,10 @@ import json
 import os
 import re
 import sqlite3
-from bs4 import BeautifulSoup
-import time
 
 
 key = "A3phA47g5rC6uF9zpmgWGxlD7SCtsimG"
-database = "tour_shows.db"
+database = "music.db"
 
 def get_url(root, artist):
     full_url = root + "apikey=" + key + "&keyword=" + artist
@@ -16,13 +14,6 @@ def get_url(root, artist):
 
 
 def get_data(url):
-    '''
-    Check whether the 'params' dictionary has been specified. 
-    Makes a request to access data with the 'url' and 'params' given, if any. 
-    If the request is successful, return a dictionary representation 
-    of the decoded JSON. If the search is unsuccessful, print out "Exception!"
-    and return None.
-    '''
 
     # https://app.ticketmaster.com/discovery/v2/events.json?apikey=A3phA47g5rC6uF9zpmgWGxlD7SCtsimG&keyword=Taylor%20Swift
     
@@ -66,12 +57,6 @@ def load_json(filename):
     
 
 def cache_all_pages(url, filename):
-    '''
-    1. Checks if the page number is found in the dict return by `load_json`
-    2. If the page number does not exist in the dictionary, it makes a request (using get_data)
-    3. Add the data to the dictionary (the key is the page number and the value is the results).
-    4. Write out the dictionary to a file using write_json.
-    '''
 
     dct = load_json(filename)
     if len(dct) == 0:
@@ -182,7 +167,18 @@ def insert_data(dict):
 
     conn.commit()
     conn.close()
-    
+
+def join_tables(database):
+
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
+
+    cur.execute('CREATE TABLE IF NOT EXISTS Events_2 AS SELECT Events.show_id, Events.artist, Events.name, Cities.city_id, Events.venue, Events.date, Events.min_price, Events.max_price FROM Events JOIN Cities ON Events.city=Cities.name')
+    # joins = cur.fetchall()
+    # print(joins)
+    conn.commit()
+    conn.close()
+
 
 
 def main():
@@ -194,6 +190,7 @@ def main():
     events = event_info("events.json")
     print(events)
     insert_data(events)
+    join_tables("music.db")
     
 
 if __name__ == "__main__":
