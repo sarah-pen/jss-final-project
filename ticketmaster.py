@@ -59,18 +59,23 @@ def load_json(filename):
 def cache_all_pages(url, filename):
 
     dct = load_json(filename)
-    if len(dct) == 0:
+    root_url = url
+    if get_data(url)["_embedded"] != dct["page 0"]:
+        dct = {}
         page_num = 0
+
+    # if len(dct) == 0:
+    #     page_num = 0
     else:
         page_num = int(list(dct.keys())[-1][-1])
-    root_url = url
+
 
     # while page isn't in dictionary yet
     while True:
         # data returned by url
         info = get_data(url)
         # if data is fruitful
-        if len(info) >= 20:
+        if "_embedded" in info:
             dct["page " + str(page_num)] = info["_embedded"]
             # if page isn't the last one
             if "next" in info["_links"]:
@@ -141,8 +146,9 @@ def insert_data(dict):
     conn = sqlite3.connect(database)
     cur = conn.cursor()
     # cur.execute('DROP TABLE IF EXISTS Events')
-    cur.execute('CREATE TABLE IF NOT EXISTS Events (show_id INTEGER PRIMARY KEY, artist TEXT, name TEXT, city TEXT, venue TEXT, date TEXT UNIQUE, min_price INTEGER, max_price INTEGER)')
-    cur.execute('CREATE TABLE IF NOT EXISTS Cities (city_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
+    cur.execute('CREATE TABLE IF NOT EXISTS Events (show_id INTEGER PRIMARY KEY, artist TEXT, name TEXT, city TEXT, venue TEXT, start_date TEXT UNIQUE, min_price INTEGER, max_price INTEGER)')
+    # cur.execute('DROP TABLE IF EXISTS Touring_Artists')
+    cur.execute('CREATE TABLE IF NOT EXISTS Touring_Artists (artist_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
 
     # id = 0
 
@@ -157,12 +163,12 @@ def insert_data(dict):
         for show in shows:
             city = show["city"]
             artist = show["artist"]
-            cur.execute('INSERT OR IGNORE INTO Cities (city_id, name) VALUES (NULL, ?)', (city,))
+            cur.execute('INSERT OR IGNORE INTO Touring_Artists (artist_id, name) VALUES (NULL, ?)', (artist,))
             venue = show.get("venue", None)
             date = show["date"]
             min_price = show.get("min_price", None)
             max_price = show.get("max_price", None)
-            cur.execute('INSERT OR IGNORE INTO Events (show_id, artist, name, city, venue, date, min_price, max_price) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)', (name, artist, city, venue, date, min_price, max_price))
+            cur.execute('INSERT OR IGNORE INTO Events (show_id, artist, name, city, venue, start_date, min_price, max_price) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)', (artist, name, city, venue, date, min_price, max_price))
             # id += 1
 
     conn.commit()
@@ -173,7 +179,8 @@ def join_tables(database):
     conn = sqlite3.connect(database)
     cur = conn.cursor()
 
-    cur.execute('CREATE TABLE IF NOT EXISTS Events_2 AS SELECT Events.show_id, Events.artist, Events.name, Cities.city_id, Events.venue, Events.date, Events.min_price, Events.max_price FROM Events JOIN Cities ON Events.city=Cities.name')
+    cur.execute('DROP TABLE IF EXISTS Events_2')
+    cur.execute('CREATE TABLE IF NOT EXISTS Events_2 AS SELECT Events.show_id, Touring_Artists.artist_id, Events.name, Events.city, Events.venue, Events.start_date, Events.min_price, Events.max_price FROM Events JOIN Touring_Artists ON Events.artist=Touring_Artists.name')
     # joins = cur.fetchall()
     # print(joins)
     conn.commit()
@@ -185,7 +192,9 @@ def main():
 
     root = "https://app.ticketmaster.com/discovery/v2/events.json?"
 
-    url = get_url(root, "Taylor_Swift")
+    artists = ["Taylor Swift, Noah Kahan, Niall Horan"]
+    url = get_url(root, "Paramore")
+
     cache_all_pages(url, "events.json")
     events = event_info("events.json")
     print(events)
