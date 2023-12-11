@@ -64,8 +64,6 @@ def cache_all_pages(url, filename):
         dct = {}
         page_num = 0
 
-    # if len(dct) == 0:
-    #     page_num = 0
     else:
         page_num = int(list(dct.keys())[-1][-1])
 
@@ -89,7 +87,6 @@ def cache_all_pages(url, filename):
             break
 
     write_json(filename, dct)
-    # print(dct["page 1"]["events"][16])
 
 
 def event_info(filename):
@@ -143,77 +140,79 @@ def event_info(filename):
 
 def insert_data(conn, cur, artists):
 
-
-    root = "https://app.ticketmaster.com/discovery/v2/events.json?"
-    for artist in artists:
-        artist = artist.split(" ")
-        artist = "_".join(artist)
-        url = get_url(root, artist)
-        cache_all_pages(url, "events.json")
-        events = event_info("events.json")
-
-    
     # cur.execute('DROP TABLE IF EXISTS Events')
     cur.execute('CREATE TABLE IF NOT EXISTS Events (show_id INTEGER PRIMARY KEY, artist TEXT, name TEXT, city TEXT, venue TEXT, start_date TEXT UNIQUE, min_price INTEGER, max_price INTEGER)')
     # cur.execute('DROP TABLE IF EXISTS Touring_Artists')
     cur.execute('CREATE TABLE IF NOT EXISTS Touring_Artists (artist_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
 
+
+    root = "https://app.ticketmaster.com/discovery/v2/events.json?"
     cur.execute("SELECT COUNT(*) FROM Events")
     table_size = cur.fetchone()[0]
-
     if table_size >= 150:
-        pass
-
+            print("You don't need to add anything more!")
+            pass
     else:
-        for i in range(1,26):
 
-            for name, shows in dict.items():
+        for artist in artists:
+            artist = artist.split(" ")
+            artist = "_".join(artist)
+            url = get_url(root, artist)
+            cache_all_pages(url, "events.json")
+            events = event_info("events.json")
 
+            for name, shows in events.items():
+                # i = 1
                 for show in shows:
+                    cur.execute("SELECT COUNT(*) FROM Events")
+                    current_size = cur.fetchone()[0]
+                    print(current_size)
+                    # sizes = [25, 50, 75, 100, 125]
+                    if current_size == (table_size + 25):
+                        break
+                    # if current_size in sizes:
+                    #     break
                     city = show["city"]
                     artist = show["artist"]
-                    cur.execute('INSERT OR IGNORE INTO Touring_Artists (artist_id, name) VALUES (NULL, ?)', (artist,))
                     venue = show.get("venue", None)
                     date = show["date"]
                     min_price = show.get("min_price", None)
                     max_price = show.get("max_price", None)
+                    cur.execute('SELECT * FROM Events WHERE artist=? AND name=? AND city=? AND venue=? AND start_date=? AND min_price=? AND max_price=?', (artist, name, city, venue, date, min_price, max_price))
+                    if len(cur.fetchall()) == 1:
+                        continue
+                    cur.execute('INSERT OR IGNORE INTO Touring_Artists (artist_id, name) VALUES (NULL, ?)', (artist,))
                     cur.execute('INSERT OR IGNORE INTO Events (show_id, artist, name, city, venue, start_date, min_price, max_price) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)', (artist, name, city, venue, date, min_price, max_price))
-                    cur.execute("SELECT COUNT(*) FROM Events")
-                
-
+                    # i += 1
+                break
+                    
 
     conn.commit()
     conn.close()
 
-def join_tables(database):
+# def join_tables(database):
 
-    conn = sqlite3.connect(database)
-    cur = conn.cursor()
+#     conn = sqlite3.connect(database)
+#     cur = conn.cursor()
 
-    cur.execute('DROP TABLE IF EXISTS Events_2')
-    cur.execute('CREATE TABLE IF NOT EXISTS Events_2 AS SELECT Events.show_id, Touring_Artists.artist_id, Events.name, Events.city, Events.venue, Events.start_date, Events.min_price, Events.max_price FROM Events JOIN Touring_Artists ON Events.artist=Touring_Artists.name')
-    # joins = cur.fetchall()
-    # print(joins)
-    conn.commit()
-    conn.close()
+#     cur.execute('DROP TABLE IF EXISTS Events_2')
+#     cur.execute('CREATE TABLE IF NOT EXISTS Events_2 AS SELECT Events.show_id, Touring_Artists.artist_id, Events.name, Events.city, Events.venue, Events.start_date, Events.min_price, Events.max_price FROM Events JOIN Touring_Artists ON Events.artist=Touring_Artists.name')
+#     # joins = cur.fetchall()
+#     # print(joins)
+    # conn.commit()
+    # conn.close()
 
 
 
 def main():
 
-    # root = "https://app.ticketmaster.com/discovery/v2/events.json?"
     conn = sqlite3.connect(database)
     cur = conn.cursor()
 
-    artists = ["Taylor Swift", "Noah Kahan", "Niall Horan", "Zach Bryan", "Chelsea Cutler", "Mitski", "Laufey"]
-    # url = get_url(root, "Taylor_Swift")
-
-    # cache_all_pages(url, "events.json")
-    # events = event_info("events.json")
-    # print(events)
+    artists = ["Noah Kahan", "Taylor Swift", "Niall Horan", "Zach Bryan", "Chelsea Cutler", "Mitski", "Laufey"]
     
     insert_data(conn, cur, artists)
-    join_tables("music.db")
+    # join_tables("music.db")
     
 
 if __name__ == "__main__":
