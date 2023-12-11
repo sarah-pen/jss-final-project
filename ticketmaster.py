@@ -193,7 +193,7 @@ def main():
     root = "https://app.ticketmaster.com/discovery/v2/events.json?"
 
     artists = ["Taylor Swift, Noah Kahan, Niall Horan"]
-    url = get_url(root, "Paramore")
+    url = get_url(root, "Taylor_Swift")
 
     cache_all_pages(url, "events.json")
     events = event_info("events.json")
