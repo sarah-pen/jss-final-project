@@ -60,15 +60,16 @@ def cache_all_pages(url, filename):
 
     dct = load_json(filename)
     root_url = url
+
+    # if first page of retrieved data is not in dictionary, empty the dictionary
     if get_data(url)["_embedded"] != dct["page 0"]:
         dct = {}
         page_num = 0
 
+    # if not, pick up where you left off
     else:
         page_num = int(list(dct.keys())[-1][-1])
 
-
-    # while page isn't in dictionary yet
     while True:
         # data returned by url
         info = get_data(url)
@@ -94,10 +95,11 @@ def event_info(filename):
     data = load_json(filename)
     events_d = {}
 
+    # loop through pages
     for k in data:
         events = data[k]["events"]
-        # lst = []
 
+        # loop through events
         for event in events:
             inner_d = {}
             name = event["name"]
@@ -147,13 +149,19 @@ def insert_data(conn, cur, artists):
 
 
     root = "https://app.ticketmaster.com/discovery/v2/events.json?"
+
+    # get initial table size
     cur.execute("SELECT COUNT(*) FROM Events")
     table_size = cur.fetchone()[0]
+
     if table_size >= 150:
             print("You don't need to add anything more!")
             pass
+    
+    # if table is not at 150 rows...
     else:
 
+        # loop through passed in artists
         for artist in artists:
             artist = artist.split(" ")
             artist = "_".join(artist)
@@ -161,29 +169,33 @@ def insert_data(conn, cur, artists):
             cache_all_pages(url, "events.json")
             events = event_info("events.json")
 
+            # loop through artist dictionary
             for name, shows in events.items():
-                # i = 1
+                # loop through their shows
                 for show in shows:
+
+                    # get current size of table
                     cur.execute("SELECT COUNT(*) FROM Events")
                     current_size = cur.fetchone()[0]
                     print(current_size)
-                    # sizes = [25, 50, 75, 100, 125]
+ 
+                    # if 25 items have been added, exit
                     if current_size == (table_size + 25):
                         break
-                    # if current_size in sizes:
-                    #     break
+
                     city = show["city"]
                     artist = show["artist"]
                     venue = show.get("venue", None)
                     date = show["date"]
                     min_price = show.get("min_price", None)
                     max_price = show.get("max_price", None)
+
+                    # if row has already been added, move on to the next one
                     cur.execute('SELECT * FROM Events WHERE artist=? AND name=? AND city=? AND venue=? AND start_date=? AND min_price=? AND max_price=?', (artist, name, city, venue, date, min_price, max_price))
                     if len(cur.fetchall()) == 1:
                         continue
                     cur.execute('INSERT OR IGNORE INTO Touring_Artists (artist_id, name) VALUES (NULL, ?)', (artist,))
                     cur.execute('INSERT OR IGNORE INTO Events (show_id, artist, name, city, venue, start_date, min_price, max_price) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)', (artist, name, city, venue, date, min_price, max_price))
-                    # i += 1
                 break
                     
 
