@@ -141,35 +141,46 @@ def event_info(filename):
 
     return events_d
 
-def insert_data(dict):
+def insert_data(conn, cur, artists):
+
+
+    root = "https://app.ticketmaster.com/discovery/v2/events.json?"
+    for artist in artists:
+        artist = artist.split(" ")
+        artist = "_".join(artist)
+        url = get_url(root, artist)
+        cache_all_pages(url, "events.json")
+        events = event_info("events.json")
+
     
-    conn = sqlite3.connect(database)
-    cur = conn.cursor()
     # cur.execute('DROP TABLE IF EXISTS Events')
     cur.execute('CREATE TABLE IF NOT EXISTS Events (show_id INTEGER PRIMARY KEY, artist TEXT, name TEXT, city TEXT, venue TEXT, start_date TEXT UNIQUE, min_price INTEGER, max_price INTEGER)')
     # cur.execute('DROP TABLE IF EXISTS Touring_Artists')
     cur.execute('CREATE TABLE IF NOT EXISTS Touring_Artists (artist_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
 
-    # id = 0
+    cur.execute("SELECT COUNT(*) FROM Events")
+    table_size = cur.fetchone()[0]
 
-    for name, shows in dict.items():
+    if table_size >= 150:
+        pass
 
-        # if id != 0 and id % 25 == 0:
-        #     break
+    else:
+        for i in range(1,26):
 
-        # cur.execute("SELECT COUNT(*) FROM Events")
-        # id = cur.fetchone()
+            for name, shows in dict.items():
 
-        for show in shows:
-            city = show["city"]
-            artist = show["artist"]
-            cur.execute('INSERT OR IGNORE INTO Touring_Artists (artist_id, name) VALUES (NULL, ?)', (artist,))
-            venue = show.get("venue", None)
-            date = show["date"]
-            min_price = show.get("min_price", None)
-            max_price = show.get("max_price", None)
-            cur.execute('INSERT OR IGNORE INTO Events (show_id, artist, name, city, venue, start_date, min_price, max_price) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)', (artist, name, city, venue, date, min_price, max_price))
-            # id += 1
+                for show in shows:
+                    city = show["city"]
+                    artist = show["artist"]
+                    cur.execute('INSERT OR IGNORE INTO Touring_Artists (artist_id, name) VALUES (NULL, ?)', (artist,))
+                    venue = show.get("venue", None)
+                    date = show["date"]
+                    min_price = show.get("min_price", None)
+                    max_price = show.get("max_price", None)
+                    cur.execute('INSERT OR IGNORE INTO Events (show_id, artist, name, city, venue, start_date, min_price, max_price) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)', (artist, name, city, venue, date, min_price, max_price))
+                    cur.execute("SELECT COUNT(*) FROM Events")
+                
+
 
     conn.commit()
     conn.close()
@@ -190,15 +201,18 @@ def join_tables(database):
 
 def main():
 
-    root = "https://app.ticketmaster.com/discovery/v2/events.json?"
+    # root = "https://app.ticketmaster.com/discovery/v2/events.json?"
+    conn = sqlite3.connect(database)
+    cur = conn.cursor()
 
-    artists = ["Taylor Swift, Noah Kahan, Niall Horan"]
-    url = get_url(root, "Taylor_Swift")
+    artists = ["Taylor Swift", "Noah Kahan", "Niall Horan", "Zach Bryan", "Chelsea Cutler", "Mitski", "Laufey"]
+    # url = get_url(root, "Taylor_Swift")
 
-    cache_all_pages(url, "events.json")
-    events = event_info("events.json")
-    print(events)
-    insert_data(events)
+    # cache_all_pages(url, "events.json")
+    # events = event_info("events.json")
+    # print(events)
+    
+    insert_data(conn, cur, artists)
     join_tables("music.db")
     
 
