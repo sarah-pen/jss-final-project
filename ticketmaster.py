@@ -144,9 +144,9 @@ def event_info(filename):
 
 def insert_data(conn, cur, artists):
 
-    # cur.execute('DROP TABLE IF EXISTS Events')
+    cur.execute('DROP TABLE IF EXISTS Events')
     cur.execute('CREATE TABLE IF NOT EXISTS Events (show_id INTEGER PRIMARY KEY, artist TEXT, city TEXT, venue TEXT, date TEXT UNIQUE, min_price INTEGER, max_price INTEGER)')
-    # cur.execute('DROP TABLE IF EXISTS Touring_Artists')
+    cur.execute('DROP TABLE IF EXISTS Touring_Artists')
     cur.execute('CREATE TABLE IF NOT EXISTS Touring_Artists (artist_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
     cur.execute('CREATE TABLE IF NOT EXISTS Cities (city_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
     cur.execute('CREATE TABLE IF NOT EXISTS Venues (venue_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
@@ -225,9 +225,7 @@ def main():
 
     conn = sqlite3.connect(database)
     cur = conn.cursor()
-
-    artists = ["Noah Kahan", "Taylor Swift", "Niall Horan", "Zach Bryan", "Chelsea Cutler", "Mitski", "Laufey"]
-    
+    artists = ["Noah Kahan", "Taylor Swift", "Niall Horan", "Zach Bryan", "Green Day", "Mitski", "Laufey"]
     insert_data(conn, cur, artists)
     join_tables(conn, cur)
     conn.commit()
