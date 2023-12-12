@@ -148,7 +148,6 @@ def get_recent_plays(api_key, username, limit=50, page=1):
         tracks_list.append({'artist': artist_name, 'track': track_name, 'album': album_name})
     return tracks_list
 
-
 def main():
     # delete_artists_table()
     # data = get_top_artists(api_key, username, period="overall", limit=50)

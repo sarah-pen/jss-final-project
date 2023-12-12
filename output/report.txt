@@ -32,3 +32,11 @@ GB: 18 artists
 CA: 3 artists
 DE: 2 artists
 JP: 2 artists
+
+Here is a list of concerts in the Midwest, based on your top artists:
+Green Day in Detroit on 2024-09-04
+Green Day in Chicago on 2024-08-13
+Metallica in Indianapolis on 2024-11-01
+Green Day in Cincinnati on 2024-08-22
+Green Day in Minneapolis on 2024-08-17
+Green Day in Milwaukee on 2024-08-24

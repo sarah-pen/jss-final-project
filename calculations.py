@@ -2,20 +2,20 @@ import sqlite3
 import datetime as dt
 import calendar
 
-def avg_min_prices(cur, conn):
+# def avg_min_prices(cur, conn):
 
-    d = {}
-    for i in range(1,7):
-        cur.execute('SELECT min_price FROM Events_final WHERE artist_id=?', (i,))
-        prices = cur.fetchall()[0]
-        # ...
-    return d
+#     d = {}
+#     for i in range():
+#         cur.execute('SELECT min_price FROM Events_final WHERE artist_id=?', (i,))
+#         prices = cur.fetchall()[0]
 
-def rating_vs_prices(cur, conn):
-    '''
-    Calculates the ratio of rating to price for each artist and returns a dictionary.
-    '''
-    pass
+#     return d
+
+# def rating_vs_prices(cur, conn):
+#     '''
+#     Calculates the ratio of rating to price for each artist and returns a dictionary.
+#     '''
+#     pass
 
 def get_top_days(cur, conn):
     '''
@@ -67,6 +67,33 @@ def get_top_artists(cur, conn):
     # print(artists_plays[0:15])
     return artists_plays[0:15]
 
+def concerts_in_midwest(cur, conn):
+    list = []
+    cur.execute('SElECT artist_id, city_id, date FROM Events_Final WHERE city_id=15')
+    list.append(cur.fetchall())
+    cur.execute('SElECT artist_id, city_id, date FROM Events_Final WHERE city_id=23')
+    list.append(cur.fetchall())
+    cur.execute('SElECT artist_id, city_id, date FROM Events_Final WHERE city_id=62')
+    list.append(cur.fetchall())
+    cur.execute('SElECT artist_id, city_id, date FROM Events_Final WHERE city_id=13')
+    list.append(cur.fetchall())
+    cur.execute('SElECT artist_id, city_id, date FROM Events_Final WHERE city_id=7')
+    list.append(cur.fetchall())
+    cur.execute('SElECT artist_id, city_id, date FROM Events_Final WHERE city_id=11')
+    list.append(cur.fetchall())
+    concerts_list = []
+    for concert in list:
+        concert = concert[0]
+        id = concert[0]
+        city_id = concert[1]
+        cur.execute('SELECT name FROM Artists WHERE id=?',(id,))
+        artist = cur.fetchall()[0][0]
+        cur.execute('SELECT name FROM Cities WHERE city_id=?',(city_id,))
+        city = cur.fetchall()[0][0]
+        # print(f"{artist} in {city} on {concert[2]}")
+        concerts_list.append({'artist': artist, 'city': city, 'date': concert[2]})
+    return concerts_list
+
 
 conn = sqlite3.connect("music.db")
 cur = conn.cursor()
@@ -74,7 +101,8 @@ cur = conn.cursor()
 def main():
     # most_common_days_concerts(cur, conn)
     # get_top_countries(cur, conn)
-    get_top_artists(cur, conn)
+    # get_top_artists(cur, conn)
+    concerts_in_midwest(cur, conn)
     conn.commit()
     conn.close()
 

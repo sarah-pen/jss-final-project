@@ -81,6 +81,9 @@ def do_calculations():
   ax.set_title('Number of Times Listened to Artist')
   plt.savefig('output/TopArtists.png', bbox_inches='tight')
 
+  # Concerts
+  concerts = calculations.concerts_in_midwest(cur, conn)
+
   # Write to file
   outfile = open('output/report.txt', 'w')
   outfile.write("SI 206: Our Findings\n")
@@ -102,6 +105,11 @@ def do_calculations():
   outfile.write("Our third metric that we calculated was the top 5 countries that all of the user's artists are from.\n")
   for country in countries:
     outfile.write(f"{country[0]}: {country[1]} artists\n")
+
+  outfile.write('\n')
+  outfile.write('Here is a list of concerts in the Midwest, based on your top artists:\n')
+  for concert in concerts:
+    outfile.write(f"{concert['artist']} in {concert['city']} on {concert['date']}\n")
 
   outfile.close()
 
