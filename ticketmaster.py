@@ -201,7 +201,7 @@ def insert_data(conn, cur, artists):
     cur.execute("SELECT COUNT(*) FROM Events")
     table_size = cur.fetchone()[0]
 
-    if table_size >= 150:
+    if table_size >= 120:
             print("You don't need to add anything more!")
             pass
 
@@ -266,7 +266,7 @@ def join_tables(conn, cur):
     '''
     Joins main table with other tables (venues, cities, artists) to avoid duplicate string data
     '''
-
+    # cur.execute('DROP TABLE IF EXISTS Events_Final')
     cur.execute('SELECT COUNT(*) FROM Events')
     size = cur.fetchall()[0]
     if size == (150,):
