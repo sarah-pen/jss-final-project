@@ -21,7 +21,7 @@ def rating_vs_prices(cur, conn):
     '''
     pass
 
-def most_common_days_concerts(cur, conn):
+def get_top_days(cur, conn):
     '''
     Takes cur and conn, returns a dictionary of weekdays with the number of concerts on each weekday.
     '''
@@ -38,8 +38,6 @@ def most_common_days_concerts(cur, conn):
       datetime_obj = dt.datetime(year, month, day)
       weekday = calendar.day_name[datetime_obj.weekday()]
       weekday_dict[weekday] += 1
-    conn.commit()
-    conn.close()
     return weekday_dict
 
 def get_top_genres(cur, conn):
@@ -67,8 +65,10 @@ def get_top_countries(cur, conn):
     return country_list[0:5]
 
 def get_top_artists(cur, conn):
-    cur.execute('SELECT artist from Artists')
-    artists = cur.fetchall()
+    cur.execute('SELECT name, plays from Artists')
+    artists_plays = cur.fetchall()
+    # print(artists_plays[0:15])
+    return artists_plays[0:15]
 
 
 
@@ -77,7 +77,10 @@ cur = conn.cursor()
 
 def main():
     # most_common_days_concerts(cur, conn)
-    get_top_countries(cur, conn)
+    # get_top_countries(cur, conn)
+    get_top_artists(cur, conn)
+    conn.commit()
+    conn.close()
 
 if __name__ == "__main__":
     main()

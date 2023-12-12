@@ -18,20 +18,22 @@ def delete_artists_table():
 def insert_data_into_table(tracks_list):
     '''
     tracks_list is of the form {'artist': artist_name, 'track': track_name, 'album': album_name}
+    may also have {'plays': plays}
     '''
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
 
     # Create the table if it doesn't exist
     # cursor.execute('CREATE TABLE IF NOT EXISTS Artists (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)')
-    cursor.execute('CREATE TABLE IF NOT EXISTS Artists (name TEXT UNIQUE)')
+    cursor.execute('CREATE TABLE IF NOT EXISTS Artists (name TEXT UNIQUE, plays INTEGER)')
     # count = 1
     # Iterate over tracks and insert artists into the table
     for item in tracks_list:
         artist = item['artist']
+        plays = int(item['plays'])
         # Use INSERT OR IGNORE to insert only if the artist doesn't exist
-        cursor.execute('INSERT OR IGNORE INTO Artists (name) VALUES (?)', (artist,))
-        print(f"Inserted {artist} or artist already in table")
+        cursor.execute('INSERT OR IGNORE INTO Artists (name, plays) VALUES (?, ?)', (artist, plays))
+        print(f"Inserted {artist} with {plays} plays or artist already in table")
 
 
     conn.commit()
