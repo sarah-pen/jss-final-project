@@ -6,26 +6,35 @@ username = "Sarah297"
 base_url = 'http://ws.audioscrobbler.com/2.0/'
 database = 'music.db'
 
+def delete_artists_table():
+    conn = sqlite3.connect(database)
+    cursor = conn.cursor()
+
+    cursor.execute('DROP TABLE IF EXISTS Artists')
+    conn.commit()
+    conn.close()
+
 
 def insert_data_into_table(tracks_list):
     '''
     tracks_list is of the form {'artist': artist_name, 'track': track_name, 'album': album_name}
+    may also have {'plays': plays}
     '''
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
 
-    cursor.execute('CREATE TABLE IF NOT EXISTS Artists (int_key INTEGER, name TEXT)')
-    count = 1
+    # Create the table if it doesn't exist
+    # cursor.execute('CREATE TABLE IF NOT EXISTS Artists (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)')
+    cursor.execute('CREATE TABLE IF NOT EXISTS Artists (name TEXT UNIQUE, plays INTEGER)')
+    # count = 1
+    # Iterate over tracks and insert artists into the table
     for item in tracks_list:
         artist = item['artist']
-        cursor.execute('SELECT name FROM Artists WHERE name = ?', (artist,))
-        existing_artist = cursor.fetchone()
-        if not existing_artist:
-            cursor.execute('INSERT INTO Artists (name) VALUES (?, ?)', (artist, count))
-            count += 1
-            print(f"Inserted {artist}")
-        else:
-            print(f"Artist {artist} already in table")
+        plays = int(item['plays'])
+        # Use INSERT OR IGNORE to insert only if the artist doesn't exist
+        cursor.execute('INSERT OR IGNORE INTO Artists (name, plays) VALUES (?, ?)', (artist, plays))
+        print(f"Inserted {artist} with {plays} plays or artist already in table")
+
 
     conn.commit()
     conn.close()
@@ -98,10 +107,11 @@ def get_recent_plays(api_key, username, limit=50, page=1):
 
 
 def main():
-    data = get_top_artists(api_key, username, period="overall", limit=25)
-    insert_data_into_table(data)
-    data = get_recent_plays(api_key, username, limit=50)
-    insert_data_into_table(data)
+    # delete_artists_table()
+    # data = get_top_artists(api_key, username, period="overall", limit=50)
+    # insert_data_into_table(data)
+    # data = get_recent_plays(api_key, username, limit=100)
+    # insert_data_into_table(data)
     pass
 
 
