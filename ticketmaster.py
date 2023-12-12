@@ -6,8 +6,7 @@ import os
 import re
 import sqlite3
 
-
-key = "A3phA47g5rC6uF9zpmgWGxlD7SCtsimG"
+# key = "A3phA47g5rC6uF9zpmgWGxlD7SCtsimG"
 
 def get_artists(conn, cur):
     cur.execute('SELECT * FROM Artists')
@@ -28,7 +27,7 @@ def get_url(root, artist):
 
 def get_data(url):
 
-    # https://app.ticketmaster.com/discovery/v2/events.json?apikey=A3phA47g5rC6uF9zpmgWGxlD7SCtsimG&keyword=Taylor%20Swift
+    # https://app.ticketmaster.com/discovery/v2/events.json?apikey=6QRG2uyfHy57J8Ck7nnTSAiiGtzxo2CG&keyword=Taylor%20Swift
     
     try:
         resp = requests.get(url)
@@ -74,38 +73,45 @@ def cache_all_pages(url, filename):
     dct = load_json(filename)
     root_url = url
 
+    if "_embedded" in get_data(url):
     # if first page of retrieved data is not in dictionary, empty the dictionary
-    if get_data(url)["_embedded"] != dct["page 0"]:
-        dct = {}
-        page_num = 0
+        if get_data(url)["_embedded"] != dct["page 0"]:
+            dct = {}
+            page_num = 0
 
-    # if not, pick up where you left off
-    else:
-        page_num = int(list(dct.keys())[-1][-1])
+        # if not, pick up where you left off
+        else:
+            page_num = int(list(dct.keys())[-1][-1])
 
-    while True:
-        # data returned by url
-        info = get_data(url)
-        # if data is fruitful
-        if "_embedded" in info:
-            dct["page " + str(page_num)] = info["_embedded"]
-            # if page isn't the last one
-            if "next" in info["_links"]:
-                # save "next" value as new url
-                page_num += 1
-                url = root_url + "&page=" + str(page_num)
-                # proceed to next page
+        while True:
+            # data returned by url
+            info = get_data(url)
+            # if data is fruitful
+            if "_embedded" in info:
+                dct["page " + str(page_num)] = info["_embedded"]
+                # if page isn't the last one
+                if "next" in info["_links"]:
+                    # save "next" value as new url
+                    page_num += 1
+                    url = root_url + "&page=" + str(page_num)
+                    # proceed to next page
+                else:
+                    break
             else:
                 break
-        else:
-            break
 
-    write_json(filename, dct)
+        write_json(filename, dct)
+    
+    else:
+        return "No data"
 
 
 def event_info(filename):
 
     data = load_json(filename)
+    if len(data) == 2:
+        return None
+    
     events_d = {}
 
     # loop through pages
@@ -118,10 +124,14 @@ def event_info(filename):
             # name = event["name"]
             date = event["dates"]["start"]["localDate"]
             if "_embedded" in event:
-                city = event["_embedded"]["venues"][0]["city"]["name"]
+                if "venues" in event["_embedded"]:
+                    city = event["_embedded"]["venues"][0]["city"]["name"]
+                else:
+                    city = None
                 if "attractions" in event["_embedded"]:
                     artist = event["_embedded"]["attractions"][0]["name"]
-                artist = None
+                else:
+                    artist = None
 
                 inner_d["city"] = city
                 # inner_d["artist"] = artist
@@ -131,8 +141,8 @@ def event_info(filename):
                 pass
 
             if "priceRanges" in event:
-                min_price = event["priceRanges"][0]["min"]
-                max_price = event["priceRanges"][0]["max"]
+                min_price = event["priceRanges"][0].get("min", None)
+                max_price = event["priceRanges"][0].get("max", None)
                 inner_d["min_price"] = min_price
                 inner_d["max_price"] = max_price
             else:
@@ -180,12 +190,13 @@ def insert_data(conn, cur, artists):
 
         # loop through passed in artists
         for artist in artists:
-            artist = artist.split(" ")
-            artist = "_".join(artist)
-            url = get_url(root, artist)
+            artist_name = artist.split(" ")
+            artist_name = "_".join(artist_name)
+            url = get_url(root, artist_name)
             cache_all_pages(url, "events.json")
             events = event_info("events.json")
-
+            if events == None:
+                continue
             # loop through artist dictionary
             for name, shows in events.items():
                 # loop through their shows
@@ -194,14 +205,15 @@ def insert_data(conn, cur, artists):
                     # get current size of table
                     cur.execute("SELECT COUNT(*) FROM Events")
                     current_size = cur.fetchone()[0]
-                    print(current_size)
+                    print("Current table size: " + str(current_size))
+
 
                     # if 25 items have been added, exit
                     if current_size == (table_size + 25):
                         break
 
                     city = show["city"]
-                    artist = name
+                    # artist = name
                     venue = show.get("venue", None)
                     date = show["date"]
                     min_price = show.get("min_price", None)
@@ -217,6 +229,11 @@ def insert_data(conn, cur, artists):
                     cur.execute('INSERT OR IGNORE INTO Cities (city_id, name) VALUES (NULL, ?)', (city,))
                     cur.execute('INSERT OR IGNORE INTO Venues (venue_id, name) VALUES (NULL, ?)', (venue,))
                 break
+            
+            if current_size == (table_size + 25):
+                break
+            else:
+                continue
 
     conn.commit()
 
