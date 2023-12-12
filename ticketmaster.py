@@ -7,7 +7,7 @@ import re
 import sqlite3
 
 
-key = "A3phA47g5rC6uF9zpmgWGxlD7SCtsimG"
+key = "6QRG2uyfHy57J8Ck7nnTSAiiGtzxo2CG"
 database = "music.db"
 
 def get_url(root, artist):
@@ -17,7 +17,7 @@ def get_url(root, artist):
 
 def get_data(url):
 
-    # https://app.ticketmaster.com/discovery/v2/events.json?apikey=A3phA47g5rC6uF9zpmgWGxlD7SCtsimG&keyword=Taylor%20Swift
+    # https://app.ticketmaster.com/discovery/v2/events.json?apikey=6QRG2uyfHy57J8Ck7nnTSAiiGtzxo2CG&keyword=Taylor%20Swift
     
     try:
         resp = requests.get(url)
