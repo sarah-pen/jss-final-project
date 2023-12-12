@@ -2,10 +2,6 @@ import sqlite3
 import datetime as dt
 import calendar
 
-# Select items from the tables and calculate something from the data (average, counts, etc)
-# At least one database join used when selecting the data
-# Write a well-formatted, self explanatory file from the calculations (JSON, csv or text file)
-
 def avg_min_prices(cur, conn):
 
     d = {}
@@ -64,12 +60,12 @@ def get_top_countries(cur, conn):
     # print(country_list[0:5])
     return country_list[0:5]
 
+
 def get_top_artists(cur, conn):
     cur.execute('SELECT name, plays from Artists')
     artists_plays = cur.fetchall()
     # print(artists_plays[0:15])
     return artists_plays[0:15]
-
 
 
 conn = sqlite3.connect("music.db")

@@ -36,7 +36,7 @@ def get_data(url):
     '''
     Retrieves data from passed in URL
     '''
-    
+
     try:
         resp = requests.get(url)
         data = resp.json()
@@ -126,7 +126,7 @@ def event_info(filename):
     data = load_json(filename)
     if len(data) <= 2:
         return None
-    
+
     events_d = {}
 
     # loop through pages
@@ -253,7 +253,7 @@ def insert_data(conn, cur, artists):
                     current_size = cur.fetchone()[0]
                     print("Current table size: " + str(current_size))
                 break
-            
+
             if current_size == (table_size + 25):
                 break
             else:
@@ -267,12 +267,19 @@ def join_tables(conn, cur):
     Joins main table with other tables (venues, cities, artists) to avoid duplicate string data
     '''
     # cur.execute('DROP TABLE IF EXISTS Events_Final')
+    # cur.execute('SELECT COUNT(*) FROM Events')
+    # size = cur.fetchall()[0]
+    # if size == (129,):
+    #     cur.execute('CREATE TABLE IF NOT EXISTS Events_Final AS SELECT Events.show_id, Touring_Artists.artist_id, Cities.city_id, Venues.venue_id, Events.date, Events.min_price, Events.max_price FROM Events JOIN Touring_Artists ON Events.artist=Touring_Artists.name JOIN Cities ON Events.city=Cities.name JOIN Venues ON Events.venue=Venues.name')
+    # else:
+    #     pass
     cur.execute('SELECT COUNT(*) FROM Events')
-    size = cur.fetchall()[0]
-    if size == (129,):
-        cur.execute('CREATE TABLE Events_Final AS SELECT Events.show_id, Touring_Artists.artist_id, Cities.city_id, Venues.venue_id, Events.date, Events.min_price, Events.max_price FROM Events JOIN Touring_Artists ON Events.artist=Touring_Artists.name JOIN Cities ON Events.city=Cities.name JOIN Venues ON Events.venue=Venues.name')
+    size = cur.fetchone()[0]  # Use fetchone() instead of fetchall()
+    if size == 129:  # Compare to an integer directly
+        cur.execute('CREATE TABLE IF NOT EXISTS Events_Final AS SELECT Events.show_id, Touring_Artists.artist_id, Cities.city_id, Venues.venue_id, Events.date, Events.min_price, Events.max_price FROM Events JOIN Touring_Artists ON Events.artist=Touring_Artists.name JOIN Cities ON Events.city=Cities.name JOIN Venues ON Events.venue=Venues.name')
     else:
         pass
+
 
     conn.commit()
 

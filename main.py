@@ -24,6 +24,7 @@ def build_database():
   lastfm.add_songs_to_database(track_list[101:125])
 
   musixmatch.main()
+  ticketmaster.main()
 
 
 def do_calculations():
