@@ -6,6 +6,11 @@ import os
 import re
 import sqlite3
 
+key = "i9XlPBAqEYI2MnQEqTIonXthBZNQBSN7"
+database = "music.db"
+
+# -----------------------------------------------------------
+
 def get_artists(conn, cur):
     '''
     Retrieves artists from LastFM table and returns them in a list
@@ -18,8 +23,6 @@ def get_artists(conn, cur):
     conn.commit()
     return lst
 
-key = "6QRG2uyfHy57J8Ck7nnTSAiiGtzxo2CG"
-database = "music.db"
 
 def get_url(root, artist):
     '''
@@ -55,7 +58,6 @@ def write_json(filename, dict):
 
 
 def load_json(filename):
-
     '''
     Loads a JSON cache from filename if it exists and returns dictionary
     with JSON data or an empty dictionary if the cache does not exist
@@ -75,15 +77,15 @@ def load_json(filename):
 
 def cache_all_pages(url, filename):
     '''
-    
+    Saves all pages to the JSON file, with page numbers as the keys
     '''
 
     dct = load_json(filename)
     root_url = url
 
     if "_embedded" in get_data(url):
-    # if first page of retrieved data is not in dictionary, empty the dictionary
-        if get_data(url)["_embedded"] != dct["page 0"]:
+        # if first page of retrieved data is not in dictionary, empty the dictionary
+        if (len(dct) == 0) or (get_data(url)["_embedded"] != dct["page 0"]):
             dct = {}
             page_num = 0
 
@@ -109,15 +111,20 @@ def cache_all_pages(url, filename):
                 break
 
         write_json(filename, dct)
-    
+    elif len(dct) > 0:
+        return "No data"
     else:
         return "No data"
 
 
 def event_info(filename):
+    '''
+    Takes in the JSON dictionary (with all pages) and returns a simplified dictionary with the artist name
+    as the key and event details as the values
+    '''
 
     data = load_json(filename)
-    if len(data) == 2:
+    if len(data) <= 2:
         return None
     
     events_d = {}
@@ -174,12 +181,17 @@ def event_info(filename):
     return events_d
 
 def insert_data(conn, cur, artists):
+    '''
+    Writes data to a SQLite database
+    '''
 
-    cur.execute('DROP TABLE IF EXISTS Events')
+    # cur.execute('DROP TABLE IF EXISTS Events')
     cur.execute('CREATE TABLE IF NOT EXISTS Events (show_id INTEGER PRIMARY KEY, artist TEXT, city TEXT, venue TEXT, date TEXT UNIQUE, min_price INTEGER, max_price INTEGER)')
-    cur.execute('DROP TABLE IF EXISTS Touring_Artists')
+    # cur.execute('DROP TABLE IF EXISTS Touring_Artists')
     cur.execute('CREATE TABLE IF NOT EXISTS Touring_Artists (artist_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
+    # cur.execute('DROP TABLE IF EXISTS Cities')
     cur.execute('CREATE TABLE IF NOT EXISTS Cities (city_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
+    # cur.execute('DROP TABLE IF EXISTS Venues')
     cur.execute('CREATE TABLE IF NOT EXISTS Venues (venue_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
 
 
@@ -213,7 +225,7 @@ def insert_data(conn, cur, artists):
                     # get current size of table
                     cur.execute("SELECT COUNT(*) FROM Events")
                     current_size = cur.fetchone()[0]
-                    print("Current table size: " + str(current_size))
+                    # print("Current table size: " + str(current_size))
 
 
                     # if 25 items have been added, exit
@@ -236,6 +248,10 @@ def insert_data(conn, cur, artists):
                     cur.execute('INSERT OR IGNORE INTO Touring_Artists (artist_id, name) VALUES (NULL, ?)', (artist,))
                     cur.execute('INSERT OR IGNORE INTO Cities (city_id, name) VALUES (NULL, ?)', (city,))
                     cur.execute('INSERT OR IGNORE INTO Venues (venue_id, name) VALUES (NULL, ?)', (venue,))
+
+                    cur.execute("SELECT COUNT(*) FROM Events")
+                    current_size = cur.fetchone()[0]
+                    print("Current table size: " + str(current_size))
                 break
             
             if current_size == (table_size + 25):
@@ -247,6 +263,9 @@ def insert_data(conn, cur, artists):
 
 
 def join_tables(conn, cur):
+    '''
+    Joins main table with other tables (venues, cities, artists) to avoid duplicate string data
+    '''
 
     cur.execute('SELECT COUNT(*) FROM Events')
     size = cur.fetchall()[0]
@@ -258,6 +277,7 @@ def join_tables(conn, cur):
     conn.commit()
 
 
+# ---- Main function ----
 
 def main():
 
