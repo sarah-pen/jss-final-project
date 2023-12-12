@@ -128,16 +128,16 @@ def main():
         rating = get_artist_rating_from_musixmatch(artist, api_key)
         if rating is not None:
             add_rating(artist, rating, database)
-            print(f"Updated rating for Artist: {artist}, Rating: {rating}")
+            print(f"Updated rating: {artist}, Rating: {rating}")
         else:
-            print(f"Rating not found for Artist: {artist}")
+            print(f"Rating not found: {artist}")
 
         country = get_artist_country_from_musixmatch(artist, api_key, database)
         if country is not None:
             add_artist_country(artist, country, database)
-            print(f"Updated country for Artist: {artist}, Country: {country}")
+            print(f"Updated country: {artist}, Country: {country}")
         else:
-            print(f"Country not found for Artist: {artist}")
+            print(f"Country not found: {artist}")
 
     #artists_and_songs = get_artists_and_songs(database)
     #for artist, song in artists_and_songs:

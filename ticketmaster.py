@@ -238,8 +238,9 @@ def main():
     conn = sqlite3.connect("music.db")
     cur = conn.cursor()
 
-    artists = ["Noah Kahan", "Taylor Swift", "Niall Horan", "Zach Bryan", "Chelsea Cutler", "Mitski", "Laufey"]
+    # artists = ["Noah Kahan", "Taylor Swift", "Niall Horan", "Zach Bryan", "Chelsea Cutler", "Mitski", "Laufey"]
 
+    get_artists(conn, cur)
     insert_data(conn, cur, artists)
     join_tables(conn, cur)
     conn.commit()

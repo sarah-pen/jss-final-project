@@ -38,7 +38,37 @@ def most_common_days_concerts(cur, conn):
       datetime_obj = dt.datetime(year, month, day)
       weekday = calendar.day_name[datetime_obj.weekday()]
       weekday_dict[weekday] += 1
+    conn.commit()
+    conn.close()
     return weekday_dict
+
+def get_top_genres(cur, conn):
+    '''
+    takes cur and conn, returns the top 5 genres based on artists in the Database
+    '''
+
+def get_top_countries(cur, conn):
+    '''
+    Takes cur and conn, returns the top 5 countries based on artists in the database
+    '''
+    cur.execute('SELECT country FROM ArtistCountry')
+    countries = cur.fetchall()
+    country_dict = {}
+    for country in countries:
+        country_dict[country[0]] = country_dict.get(country[0], 0) +1
+    country_list = []
+    for key in country_dict:
+        if key == '':
+            continue
+        else:
+            country_list.append((key, country_dict[key]))
+    country_list.sort(reverse=True, key=lambda x:x[1])
+    # print(country_list[0:5])
+    return country_list[0:5]
+
+def get_top_artists(cur, conn):
+    cur.execute('SELECT artist from Artists')
+    artists = cur.fetchall()
 
 
 
@@ -46,7 +76,8 @@ conn = sqlite3.connect("music.db")
 cur = conn.cursor()
 
 def main():
-    most_common_days_concerts(cur, conn)
+    # most_common_days_concerts(cur, conn)
+    get_top_countries(cur, conn)
 
 if __name__ == "__main__":
     main()

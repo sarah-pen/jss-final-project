@@ -6,6 +6,14 @@ username = "Sarah297"
 base_url = 'http://ws.audioscrobbler.com/2.0/'
 database = 'music.db'
 
+def delete_artists_table():
+    conn = sqlite3.connect(database)
+    cursor = conn.cursor()
+
+    cursor.execute('DROP TABLE IF EXISTS Artists')
+    conn.commit()
+    conn.close()
+
 
 def insert_data_into_table(tracks_list):
     '''
@@ -15,8 +23,9 @@ def insert_data_into_table(tracks_list):
     cursor = conn.cursor()
 
     # Create the table if it doesn't exist
-    cursor.execute('CREATE TABLE IF NOT EXISTS Artists (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)')
-
+    # cursor.execute('CREATE TABLE IF NOT EXISTS Artists (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE)')
+    cursor.execute('CREATE TABLE IF NOT EXISTS Artists (name TEXT UNIQUE)')
+    # count = 1
     # Iterate over tracks and insert artists into the table
     for item in tracks_list:
         artist = item['artist']
@@ -96,10 +105,11 @@ def get_recent_plays(api_key, username, limit=50, page=1):
 
 
 def main():
-    data = get_top_artists(api_key, username, period="overall", limit=25)
-    insert_data_into_table(data)
-    data = get_recent_plays(api_key, username, limit=50)
-    insert_data_into_table(data)
+    # delete_artists_table()
+    # data = get_top_artists(api_key, username, period="overall", limit=50)
+    # insert_data_into_table(data)
+    # data = get_recent_plays(api_key, username, limit=100)
+    # insert_data_into_table(data)
     pass
 
 
