@@ -4,8 +4,8 @@ import sqlite3
 api_key = "28057900aa8badddae0f85dbdfb8848b"
 username = "Sarah297"
 base_url = 'http://ws.audioscrobbler.com/2.0/'
-database = 'music.db'
-# database = 'test.db'
+# database = 'music.db'
+database = 'test.db'
 
 def delete_artists_table():
     conn = sqlite3.connect(database)
@@ -149,13 +149,13 @@ def get_recent_plays(api_key, username, limit=50, page=1):
     return tracks_list
 
 def main():
-    # delete_artists_table()
-    # data = get_top_artists(api_key, username, period="overall", limit=50)
-    # insert_data_into_table(data)
-    # data = get_recent_plays(api_key, username, limit=100)
-    # insert_data_into_table(data)
-    # lsit = get_top_songs(api_key, username, limit=20)
-    # add_songs_to_database(api_key, database, lsit)
+    delete_artists_table()
+    data = get_top_artists(api_key, username, period="overall", limit=50)
+    insert_data_into_table(data)
+    data = get_recent_plays(api_key, username, limit=100)
+    insert_data_into_table(data)
+    lsit = get_top_songs(api_key, username, limit=20)
+    add_songs_to_database(api_key, database, lsit)
     pass
 
 
