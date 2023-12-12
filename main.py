@@ -15,19 +15,15 @@ def build_database():
   lastfm.insert_data_into_table(artist_list[76:100])
   lastfm.insert_data_into_table(artist_list[101:125])
 
-# print(f"inserted {len(artist_list)} artists")
+  track_list = lastfm.get_top_songs(lastfm.api_key, lastfm.username, period="overall", limit=125)
 
-# TODO:
+  lastfm.add_songs_to_database(track_list[0:25])
+  lastfm.add_songs_to_database(track_list[26:50])
+  lastfm.add_songs_to_database(track_list[51:75])
+  lastfm.add_songs_to_database(track_list[76:100])
+  lastfm.add_songs_to_database(track_list[101:125])
 
-# Get Min/Max ticket prices for each artist (or null if artist isn't active)
-
-# Make another database that stores top songs and links to artist database
-
-# VISUALIZATIONS:
-# Country of origin for each artist - make a pie chart
-# Possibly most common locations for concerts
-# Top artists by playcount (bar graph)
-# Rating vs. Ticket Price
+  musixmatch.main()
 
 
 def do_calculations():
@@ -112,7 +108,8 @@ def do_calculations():
   conn.close()
 
 def main():
-  # build_database()
+  # lastfm.delete_artists_table()
+  build_database()
   do_calculations()
 
 if __name__ == "__main__":

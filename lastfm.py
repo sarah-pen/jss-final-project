@@ -63,12 +63,13 @@ def get_top_songs(api_key, username, period='overall', limit=10):
         songs_list.append({'artist': artist_name, "track": song_name, "plays": playcount})
     return songs_list
 
-def add_songs_to_database(api_key, database, tracks_list):
+def add_songs_to_database(tracks_list):
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
     cursor.execute('CREATE TABLE IF NOT EXISTS Songs (artist_id INTEGER PRIMARY KEY, name TEXT UNIQUE, plays INTEGER)')
     # tracks_list.append({'track': 'Placeholder Obscure Song', 'artist': 'QWERTY', 'plays': 3})
     for item in tracks_list:
+        print(item)
         track = item['track']
         artist = item['artist']
         plays = item['plays']
