@@ -7,6 +7,9 @@ import re
 import sqlite3
 
 def get_artists(conn, cur):
+    '''
+    Retrieves artists from LastFM table and returns them in a list
+    '''
     cur.execute('SELECT * FROM Artists')
     artists = cur.fetchall()
     lst = []
@@ -19,13 +22,17 @@ key = "6QRG2uyfHy57J8Ck7nnTSAiiGtzxo2CG"
 database = "music.db"
 
 def get_url(root, artist):
+    '''
+    Takes the root url and artist name and returns the full url
+    '''
     full_url = root + "apikey=" + key + "&keyword=" + artist
     return full_url
 
 
 def get_data(url):
-
-    # https://app.ticketmaster.com/discovery/v2/events.json?apikey=6QRG2uyfHy57J8Ck7nnTSAiiGtzxo2CG&keyword=Taylor%20Swift
+    '''
+    Retrieves data from passed in URL
+    '''
     
     try:
         resp = requests.get(url)
@@ -38,7 +45,7 @@ def get_data(url):
 def write_json(filename, dict):
     '''
     Encodes dict into JSON format and writes
-    the JSON to filename to save the search results
+    the JSON to filename to save the results
     '''
 
     with open(filename, 'w') as file:
@@ -67,6 +74,9 @@ def load_json(filename):
 
 
 def cache_all_pages(url, filename):
+    '''
+    
+    '''
 
     dct = load_json(filename)
     root_url = url
@@ -253,9 +263,6 @@ def main():
 
     conn = sqlite3.connect("music.db")
     cur = conn.cursor()
-    cur.execute('DELETE FROM Events WHERE show_id >= 134')
-
-    # artists = ["Noah Kahan", "Taylor Swift", "Niall Horan", "Zach Bryan", "Chelsea Cutler", "Mitski", "Laufey"]
 
     artists = get_artists(conn, cur)
     insert_data(conn, cur, artists)
