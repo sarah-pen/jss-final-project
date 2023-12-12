@@ -6,8 +6,6 @@ import os
 import re
 import sqlite3
 
-# key = "A3phA47g5rC6uF9zpmgWGxlD7SCtsimG"
-
 def get_artists(conn, cur):
     cur.execute('SELECT * FROM Artists')
     artists = cur.fetchall()
@@ -255,6 +253,7 @@ def main():
 
     conn = sqlite3.connect("music.db")
     cur = conn.cursor()
+    cur.execute('DELETE FROM Events WHERE show_id >= 134')
 
     # artists = ["Noah Kahan", "Taylor Swift", "Niall Horan", "Zach Bryan", "Chelsea Cutler", "Mitski", "Laufey"]
 
