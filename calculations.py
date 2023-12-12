@@ -1,17 +1,52 @@
-import lastfm
-import musixmatch
-import ticketmaster
+import sqlite3
+import datetime as dt
+import calendar
 
 # Select items from the tables and calculate something from the data (average, counts, etc)
 # At least one database join used when selecting the data
 # Write a well-formatted, self explanatory file from the calculations (JSON, csv or text file)
 
-def calc_ticketmaster(cur, conn):
+def avg_min_prices(cur, conn):
 
     d = {}
     for i in range(1,7):
         cur.execute('SELECT min_price FROM Events_final WHERE artist_id=?', (i,))
         prices = cur.fetchall()[0]
-        
+        # ...
+    return d
 
-    
+def rating_vs_prices(cur, conn):
+    '''
+    Calculates the ratio of rating to price for each artist and returns a dictionary.
+    '''
+    pass
+
+def most_common_days_concerts(cur, conn):
+    '''
+    Takes cur and conn, returns a dictionary of weekdays with the number of concerts on each weekday.
+    '''
+    cur.execute('SELECT date FROM Events_Final')
+    days = cur.fetchall()
+    weekday_dict = {'Sunday':0, 'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0, 'Saturday':0}
+    for date in days:
+    #   print(type(date))
+      date = date[0]
+      year = int(date[0:4])
+      month = int(date[5:7])
+      day = int(date[8:])
+      # print(f"date: {year}/{month}/{day}")
+      datetime_obj = dt.datetime(year, month, day)
+      weekday = calendar.day_name[datetime_obj.weekday()]
+      weekday_dict[weekday] += 1
+    return weekday_dict
+
+
+
+conn = sqlite3.connect("music.db")
+cur = conn.cursor()
+
+def main():
+    most_common_days_concerts(cur, conn)
+
+if __name__ == "__main__":
+    main()

@@ -14,18 +14,16 @@ def insert_data_into_table(tracks_list):
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
 
-    cursor.execute('CREATE TABLE IF NOT EXISTS Artists (int_key INTEGER, name TEXT)')
-    count = 1
+    # Create the table if it doesn't exist
+    cursor.execute('CREATE TABLE IF NOT EXISTS Artists (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)')
+
+    # Iterate over tracks and insert artists into the table
     for item in tracks_list:
         artist = item['artist']
-        cursor.execute('SELECT name FROM Artists WHERE name = ?', (artist,))
-        existing_artist = cursor.fetchone()
-        if not existing_artist:
-            cursor.execute('INSERT INTO Artists (name) VALUES (?, ?)', (artist, count))
-            count += 1
-            print(f"Inserted {artist}")
-        else:
-            print(f"Artist {artist} already in table")
+        # Use INSERT OR IGNORE to insert only if the artist doesn't exist
+        cursor.execute('INSERT OR IGNORE INTO Artists (name) VALUES (?)', (artist,))
+        print(f"Inserted {artist} or artist already in table")
+
 
     conn.commit()
     conn.close()

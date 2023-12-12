@@ -8,7 +8,17 @@ import sqlite3
 
 
 key = "A3phA47g5rC6uF9zpmgWGxlD7SCtsimG"
-database = "music.db"
+
+def get_artists(conn, cur):
+    cur.execute('SELECT * FROM Artists')
+    artists = cur.fetchall()
+    lst = []
+    for artist in artists:
+        lst.append(artist[0])
+    conn.commit()
+    conn.close()
+    return lst
+
 
 def get_url(root, artist):
     full_url = root + "apikey=" + key + "&keyword=" + artist
@@ -18,14 +28,14 @@ def get_url(root, artist):
 def get_data(url):
 
     # https://app.ticketmaster.com/discovery/v2/events.json?apikey=A3phA47g5rC6uF9zpmgWGxlD7SCtsimG&keyword=Taylor%20Swift
-    
+
     try:
         resp = requests.get(url)
         data = resp.json()
         return data
     except:
         return "Exception!"
-    
+
 
 def write_json(filename, dict):
     '''
@@ -56,7 +66,7 @@ def load_json(filename):
         return data
     except:
         return {}
-    
+
 
 def cache_all_pages(url, filename):
 
@@ -119,7 +129,7 @@ def event_info(filename):
 
             if "priceRanges" in event:
                 min_price = event["priceRanges"][0]["min"]
-                max_price = event["priceRanges"][0]["max"] 
+                max_price = event["priceRanges"][0]["max"]
                 inner_d["min_price"] = min_price
                 inner_d["max_price"] = max_price
             else:
@@ -161,7 +171,7 @@ def insert_data(conn, cur, artists):
     if table_size >= 150:
             print("You don't need to add anything more!")
             pass
-    
+
     # if table is not at 150 rows...
     else:
 
@@ -182,7 +192,7 @@ def insert_data(conn, cur, artists):
                     cur.execute("SELECT COUNT(*) FROM Events")
                     current_size = cur.fetchone()[0]
                     print(current_size)
- 
+
                     # if 25 items have been added, exit
                     if current_size == (table_size + 25):
                         break
@@ -204,9 +214,10 @@ def insert_data(conn, cur, artists):
                     cur.execute('INSERT OR IGNORE INTO Cities (city_id, name) VALUES (NULL, ?)', (city,))
                     cur.execute('INSERT OR IGNORE INTO Venues (venue_id, name) VALUES (NULL, ?)', (venue,))
                 break
-        
+
     conn.commit()
-                    
+    conn.close()
+
 
 def join_tables(conn, cur):
 
@@ -218,22 +229,22 @@ def join_tables(conn, cur):
         pass
 
     conn.commit()
+    conn.close()
 
 
 
 def main():
 
-    conn = sqlite3.connect(database)
+    conn = sqlite3.connect("music.db")
     cur = conn.cursor()
 
     artists = ["Noah Kahan", "Taylor Swift", "Niall Horan", "Zach Bryan", "Chelsea Cutler", "Mitski", "Laufey"]
-    
+
     insert_data(conn, cur, artists)
     join_tables(conn, cur)
     conn.commit()
     conn.close()
-    
+
 
 if __name__ == "__main__":
     main()
-
