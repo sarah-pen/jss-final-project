@@ -16,7 +16,6 @@ def get_artists(conn, cur):
     for artist in artists:
         lst.append(artist[0])
     conn.commit()
-    conn.close()
     return lst
 
 key = "6QRG2uyfHy57J8Ck7nnTSAiiGtzxo2CG"
@@ -120,7 +119,9 @@ def event_info(filename):
             date = event["dates"]["start"]["localDate"]
             if "_embedded" in event:
                 city = event["_embedded"]["venues"][0]["city"]["name"]
-                artist = event["_embedded"]["attractions"][0]["name"]
+                if "attractions" in event["_embedded"]:
+                    artist = event["_embedded"]["attractions"][0]["name"]
+                artist = None
 
                 inner_d["city"] = city
                 # inner_d["artist"] = artist
@@ -218,7 +219,6 @@ def insert_data(conn, cur, artists):
                 break
 
     conn.commit()
-    conn.close()
 
 
 def join_tables(conn, cur):
@@ -231,7 +231,6 @@ def join_tables(conn, cur):
         pass
 
     conn.commit()
-    conn.close()
 
 
 
@@ -242,7 +241,7 @@ def main():
 
     # artists = ["Noah Kahan", "Taylor Swift", "Niall Horan", "Zach Bryan", "Chelsea Cutler", "Mitski", "Laufey"]
 
-    get_artists(conn, cur)
+    artists = get_artists(conn, cur)
     insert_data(conn, cur, artists)
     join_tables(conn, cur)
     conn.commit()
