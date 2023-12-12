@@ -1,3 +1,5 @@
+# Completed by Sarah Penrose
+
 import requests
 import json
 import os
@@ -196,6 +198,7 @@ def insert_data(conn, cur, artists):
                     cur.execute('SELECT * FROM Events WHERE artist=? AND city=? AND venue=? AND date=? AND min_price=? AND max_price=?', (artist, city, venue, date, min_price, max_price))
                     if len(cur.fetchall()) == 1:
                         continue
+                    # insert data
                     cur.execute('INSERT OR IGNORE INTO Events (show_id, artist, city, venue, date, min_price, max_price) VALUES (NULL, ?, ?, ?, ?, ?, ?)', (artist, city, venue, date, min_price, max_price))
                     cur.execute('INSERT OR IGNORE INTO Touring_Artists (artist_id, name) VALUES (NULL, ?)', (artist,))
                     cur.execute('INSERT OR IGNORE INTO Cities (city_id, name) VALUES (NULL, ?)', (city,))
