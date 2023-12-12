@@ -269,7 +269,7 @@ def join_tables(conn, cur):
     # cur.execute('DROP TABLE IF EXISTS Events_Final')
     cur.execute('SELECT COUNT(*) FROM Events')
     size = cur.fetchall()[0]
-    if size == (150,):
+    if size == (129,):
         cur.execute('CREATE TABLE Events_Final AS SELECT Events.show_id, Touring_Artists.artist_id, Cities.city_id, Venues.venue_id, Events.date, Events.min_price, Events.max_price FROM Events JOIN Touring_Artists ON Events.artist=Touring_Artists.name JOIN Cities ON Events.city=Cities.name JOIN Venues ON Events.venue=Venues.name')
     else:
         pass
