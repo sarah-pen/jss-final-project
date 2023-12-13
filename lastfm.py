@@ -1,7 +1,7 @@
 import requests
 import sqlite3
 
-api_key = "28057900aa8badddae0f85dbdfb8848b"
+api_key = "81afb2d4a16555a6d6e469c9294a3344"
 username = "Sarah297"
 base_url = 'http://ws.audioscrobbler.com/2.0/'
 database = 'music.db'
