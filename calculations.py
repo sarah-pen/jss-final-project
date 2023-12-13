@@ -2,20 +2,6 @@ import sqlite3
 import datetime as dt
 import calendar
 
-# def avg_min_prices(cur, conn):
-
-#     d = {}
-#     for i in range():
-#         cur.execute('SELECT min_price FROM Events_final WHERE artist_id=?', (i,))
-#         prices = cur.fetchall()[0]
-
-#     return d
-
-# def rating_vs_prices(cur, conn):
-#     '''
-#     Calculates the ratio of rating to price for each artist and returns a dictionary.
-#     '''
-#     pass
 
 def get_top_days(cur, conn):
     '''
@@ -23,7 +9,8 @@ def get_top_days(cur, conn):
     '''
     cur.execute('SELECT date FROM Events_Final')
     days = cur.fetchall()
-    weekday_dict = {'Sunday':0, 'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0, 'Saturday':0}
+    # weekday_dict = {'Sunday':0, 'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0, 'Saturday':0}
+    weekday_dict = {}
     for date in days:
     #   print(type(date))
       date = date[0]
@@ -33,14 +20,10 @@ def get_top_days(cur, conn):
       # print(f"date: {year}/{month}/{day}")
       datetime_obj = dt.datetime(year, month, day)
       weekday = calendar.day_name[datetime_obj.weekday()]
-      weekday_dict[weekday] += 1
+      weekday_dict[weekday] = weekday_dict.get(weekday, 0) + 1
     conn.commit()
     return weekday_dict
 
-def get_top_genres(cur, conn):
-    '''
-    takes cur and conn, returns the top 5 genres based on artists in the Database
-    '''
 
 def get_top_countries(cur, conn):
     '''
@@ -72,18 +55,12 @@ def get_top_artists(cur, conn):
 
 def concerts_in_midwest(cur, conn):
     list = []
-    cur.execute('SElECT artist_id, city_id, date FROM Events_Final WHERE city_id=15')
-    list.append(cur.fetchall())
-    cur.execute('SElECT artist_id, city_id, date FROM Events_Final WHERE city_id=23')
-    list.append(cur.fetchall())
-    cur.execute('SElECT artist_id, city_id, date FROM Events_Final WHERE city_id=62')
-    list.append(cur.fetchall())
-    cur.execute('SElECT artist_id, city_id, date FROM Events_Final WHERE city_id=13')
-    list.append(cur.fetchall())
-    cur.execute('SElECT artist_id, city_id, date FROM Events_Final WHERE city_id=7')
-    list.append(cur.fetchall())
-    cur.execute('SElECT artist_id, city_id, date FROM Events_Final WHERE city_id=11')
-    list.append(cur.fetchall())
+    midwest = [15, 23, 62, 13, 7, 11]
+    for city in midwest:
+        cur.execute('SELECT id, city_id, date FROM Events_Final WHERE city_id=?', (city,))
+        list.append(cur.fetchall())
+
+
     concerts_list = []
     for concert in list:
         # concert = concert[0]
