@@ -183,8 +183,6 @@ def insert_data(conn, cur, artists):
 
     # cur.execute('DROP TABLE IF EXISTS Events')
     cur.execute('CREATE TABLE IF NOT EXISTS Events (show_id INTEGER PRIMARY KEY, artist TEXT, city TEXT, date TEXT UNIQUE, min_price INTEGER, max_price INTEGER)')
-    # cur.execute('DROP TABLE IF EXISTS Touring_Artists')
-    cur.execute('CREATE TABLE IF NOT EXISTS Touring_Artists (artist_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
     # cur.execute('DROP TABLE IF EXISTS Cities')
     cur.execute('CREATE TABLE IF NOT EXISTS Cities (city_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
 
@@ -239,7 +237,7 @@ def insert_data(conn, cur, artists):
                         continue
                     # insert data
                     cur.execute('INSERT OR IGNORE INTO Events (show_id, artist, city, date, min_price, max_price) VALUES (NULL, ?, ?, ?, ?, ?)', (artist, city, date, min_price, max_price))
-                    cur.execute('INSERT OR IGNORE INTO Touring_Artists (artist_id, name) VALUES (NULL, ?)', (artist,))
+                    # cur.execute('INSERT OR IGNORE INTO Touring_Artists (artist_id, name) VALUES (NULL, ?)', (artist,))
                     cur.execute('INSERT OR IGNORE INTO Cities (city_id, name) VALUES (NULL, ?)', (city,))
 
                     cur.execute("SELECT COUNT(*) FROM Events")
@@ -257,14 +255,13 @@ def insert_data(conn, cur, artists):
 
 def join_tables(conn, cur):
     '''
-    Joins main table with other tables (venues, cities, artists) to avoid duplicate string data
+    Joins main table with other tables (cities, artists) to avoid duplicate string data
     '''
 
-    cur.execute('DROP TABLE IF EXISTS Venues')
     cur.execute('SELECT COUNT(*) FROM Events')
     size = cur.fetchone()[0]  # Use fetchone() instead of fetchall()
     if size > 250:  # Compare to an integer directly
-        cur.execute('CREATE TABLE IF NOT EXISTS Events_Final AS SELECT Events.show_id, Touring_Artists.artist_id, Cities.city_id, Events.date, Events.min_price, Events.max_price FROM Events JOIN Touring_Artists ON Events.artist=Touring_Artists.name JOIN Cities ON Events.city=Cities.name')
+        cur.execute('CREATE TABLE IF NOT EXISTS Events_Final AS SELECT Events.show_id, Artists.id, Cities.city_id, Events.date, Events.min_price, Events.max_price FROM Events JOIN Artists ON Events.artist=Artists.name JOIN Cities ON Events.city=Cities.name')
     else:
         pass
 
