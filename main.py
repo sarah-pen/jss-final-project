@@ -7,22 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def build_database():
-  artist_list = lastfm.get_top_artists(lastfm.api_key, lastfm.username, period="overall", limit=125)
-
-  lastfm.insert_data_into_table(artist_list[0:25])
-  lastfm.insert_data_into_table(artist_list[26:50])
-  lastfm.insert_data_into_table(artist_list[51:75])
-  lastfm.insert_data_into_table(artist_list[76:100])
-  lastfm.insert_data_into_table(artist_list[101:125])
-
-  track_list = lastfm.get_top_songs(lastfm.api_key, lastfm.username, period="overall", limit=125)
-
-  lastfm.add_songs_to_database(track_list[0:25])
-  lastfm.add_songs_to_database(track_list[26:50])
-  lastfm.add_songs_to_database(track_list[51:75])
-  lastfm.add_songs_to_database(track_list[76:100])
-  lastfm.add_songs_to_database(track_list[101:125])
-
+  lastfm.main()
   musixmatch.main()
   ticketmaster.main()
 
