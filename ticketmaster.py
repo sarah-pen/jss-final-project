@@ -260,7 +260,7 @@ def join_tables(conn, cur):
 
     cur.execute('SELECT COUNT(*) FROM Events')
     size = cur.fetchone()[0]  # Use fetchone() instead of fetchall()
-    if size > 250:  # Compare to an integer directly
+    if size > 100:  # Compare to an integer directly
         cur.execute('CREATE TABLE IF NOT EXISTS Events_Final AS SELECT Events.show_id, Artists.id, Cities.city_id, Events.date, Events.min_price, Events.max_price FROM Events JOIN Artists ON Events.artist=Artists.name JOIN Cities ON Events.city=Cities.name')
     else:
         pass
@@ -288,7 +288,7 @@ def main():
         min_price = event[4]
         max_price = event[5]
         print(f"{artist} performing in {city} on {date}. Min price is {min_price} and max price is {max_price}.")
-        
+
     conn.commit()
     conn.close()
 
