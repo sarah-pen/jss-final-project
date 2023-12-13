@@ -41,7 +41,6 @@ def get_top_countries(cur, conn):
             country_list.append((key, country_dict[key]))
     country_list.sort(reverse=True, key=lambda x:x[1])
     conn.commit()
-    # print(country_list[0:5])
     return country_list[0:5]
 
 
