@@ -101,6 +101,7 @@ def do_calculations():
   conn.commit()
   conn.close()
 
+
 def main():
   # lastfm.delete_artists_table()
   build_database()
