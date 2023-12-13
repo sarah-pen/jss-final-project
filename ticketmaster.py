@@ -6,7 +6,7 @@ import os
 import re
 import sqlite3
 
-key = "i9XlPBAqEYI2MnQEqTIonXthBZNQBSN7"
+key = "xWeTlRn2AItFvhGrkcjJGGQueAYGqWJy"
 database = "music.db"
 
 # -----------------------------------------------------------
@@ -15,7 +15,7 @@ def get_artists(conn, cur):
     '''
     Retrieves artists from LastFM table and returns them in a list
     '''
-    cur.execute('SELECT * FROM Artists')
+    cur.execute('SELECT name FROM Artists')
     artists = cur.fetchall()
     lst = []
     for artist in artists:
@@ -34,7 +34,7 @@ def get_url(root, artist):
 
 def get_data(url):
     '''
-    Retrieves data from passed in URL
+    Retrieves data from passed in URL and returns it
     '''
 
     try:
@@ -111,9 +111,12 @@ def cache_all_pages(url, filename):
                 break
 
         write_json(filename, dct)
-    elif len(dct) > 0:
+        
+    elif len(dct) == 0:
+        write_json(filename, dct)
         return "No data"
     else:
+        write_json(filename, dct)
         return "No data"
 
 
@@ -146,10 +149,9 @@ def event_info(filename):
                 if "attractions" in event["_embedded"]:
                     artist = event["_embedded"]["attractions"][0]["name"]
                 else:
-                    artist = None
+                    artist = event["name"]
 
                 inner_d["city"] = city
-                # inner_d["artist"] = artist
                 inner_d["date"] = date
 
             else:
@@ -163,16 +165,6 @@ def event_info(filename):
             else:
                 pass
 
-            if "venues" in event["_links"]:
-                venue_link = event["_links"]["venues"][0]["href"]
-                link = re.findall(".*\?", venue_link)[0]
-                full_venue = "https://app.ticketmaster.com" + link + "&apikey=" + key
-                venue_resp = requests.get(full_venue).json()
-                venue_name = venue_resp.get("name", "Error")
-                inner_d["venue"] = venue_name
-            else:
-                continue
-
             if artist not in events_d:
                 events_d[artist] = [inner_d]
             else:
@@ -180,19 +172,18 @@ def event_info(filename):
 
     return events_d
 
+
 def insert_data(conn, cur, artists):
     '''
     Writes data to a SQLite database
     '''
 
     # cur.execute('DROP TABLE IF EXISTS Events')
-    cur.execute('CREATE TABLE IF NOT EXISTS Events (show_id INTEGER PRIMARY KEY, artist TEXT, city TEXT, venue TEXT, date TEXT UNIQUE, min_price INTEGER, max_price INTEGER)')
+    cur.execute('CREATE TABLE IF NOT EXISTS Events (show_id INTEGER PRIMARY KEY, artist TEXT, city TEXT, date TEXT UNIQUE, min_price INTEGER, max_price INTEGER)')
     # cur.execute('DROP TABLE IF EXISTS Touring_Artists')
     cur.execute('CREATE TABLE IF NOT EXISTS Touring_Artists (artist_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
     # cur.execute('DROP TABLE IF EXISTS Cities')
     cur.execute('CREATE TABLE IF NOT EXISTS Cities (city_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
-    # cur.execute('DROP TABLE IF EXISTS Venues')
-    cur.execute('CREATE TABLE IF NOT EXISTS Venues (venue_id INTEGER PRIMARY KEY, name TEXT UNIQUE)')
 
 
     root = "https://app.ticketmaster.com/discovery/v2/events.json?"
@@ -201,7 +192,7 @@ def insert_data(conn, cur, artists):
     cur.execute("SELECT COUNT(*) FROM Events")
     table_size = cur.fetchone()[0]
 
-    if table_size >= 120:
+    if table_size >= 400:
             print("You don't need to add anything more!")
             pass
 
@@ -219,6 +210,8 @@ def insert_data(conn, cur, artists):
                 continue
             # loop through artist dictionary
             for name, shows in events.items():
+
+                show_id = 1
                 # loop through their shows
                 for show in shows:
 
@@ -227,27 +220,24 @@ def insert_data(conn, cur, artists):
                     current_size = cur.fetchone()[0]
                     # print("Current table size: " + str(current_size))
 
-
                     # if 25 items have been added, exit
                     if current_size == (table_size + 25):
                         break
 
-                    city = show["city"]
-                    # artist = name
-                    venue = show.get("venue", None)
-                    date = show["date"]
+                    city = show.get("city", None)
+                    date = show.get("date", None)
                     min_price = show.get("min_price", None)
                     max_price = show.get("max_price", None)
 
                     # if row has already been added, move on to the next one
-                    cur.execute('SELECT * FROM Events WHERE artist=? AND city=? AND venue=? AND date=? AND min_price=? AND max_price=?', (artist, city, venue, date, min_price, max_price))
+                    cur.execute('SELECT * FROM Events WHERE show_id=? AND artist=? AND city=? AND date=? AND min_price=? AND max_price=?', (show_id, artist, city, date, min_price, max_price))
+                    show_id += 1
                     if len(cur.fetchall()) == 1:
                         continue
                     # insert data
-                    cur.execute('INSERT OR IGNORE INTO Events (show_id, artist, city, venue, date, min_price, max_price) VALUES (NULL, ?, ?, ?, ?, ?, ?)', (artist, city, venue, date, min_price, max_price))
+                    cur.execute('INSERT OR IGNORE INTO Events (show_id, artist, city, date, min_price, max_price) VALUES (NULL, ?, ?, ?, ?, ?)', (artist, city, date, min_price, max_price))
                     cur.execute('INSERT OR IGNORE INTO Touring_Artists (artist_id, name) VALUES (NULL, ?)', (artist,))
                     cur.execute('INSERT OR IGNORE INTO Cities (city_id, name) VALUES (NULL, ?)', (city,))
-                    cur.execute('INSERT OR IGNORE INTO Venues (venue_id, name) VALUES (NULL, ?)', (venue,))
 
                     cur.execute("SELECT COUNT(*) FROM Events")
                     current_size = cur.fetchone()[0]
@@ -266,20 +256,13 @@ def join_tables(conn, cur):
     '''
     Joins main table with other tables (venues, cities, artists) to avoid duplicate string data
     '''
-    # cur.execute('DROP TABLE IF EXISTS Events_Final')
-    # cur.execute('SELECT COUNT(*) FROM Events')
-    # size = cur.fetchall()[0]
-    # if size == (129,):
-    #     cur.execute('CREATE TABLE IF NOT EXISTS Events_Final AS SELECT Events.show_id, Touring_Artists.artist_id, Cities.city_id, Venues.venue_id, Events.date, Events.min_price, Events.max_price FROM Events JOIN Touring_Artists ON Events.artist=Touring_Artists.name JOIN Cities ON Events.city=Cities.name JOIN Venues ON Events.venue=Venues.name')
-    # else:
-    #     pass
+
     cur.execute('SELECT COUNT(*) FROM Events')
     size = cur.fetchone()[0]  # Use fetchone() instead of fetchall()
-    if size == 129:  # Compare to an integer directly
+    if size == 400:  # Compare to an integer directly
         cur.execute('CREATE TABLE IF NOT EXISTS Events_Final AS SELECT Events.show_id, Touring_Artists.artist_id, Cities.city_id, Venues.venue_id, Events.date, Events.min_price, Events.max_price FROM Events JOIN Touring_Artists ON Events.artist=Touring_Artists.name JOIN Cities ON Events.city=Cities.name JOIN Venues ON Events.venue=Venues.name')
     else:
         pass
-
 
     conn.commit()
 
