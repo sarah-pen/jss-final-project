@@ -278,6 +278,17 @@ def main():
     artists = get_artists(conn, cur)
     insert_data(conn, cur, artists)
     join_tables(conn, cur)
+
+    cur.execute('SELECT * FROM Events')
+    events = cur.fetchall()
+    for event in events:
+        artist = event[1]
+        city = event[2]
+        date = event[3]
+        min_price = event[4]
+        max_price = event[5]
+        print(f"{artist} performing in {city} on {date}. Min price is {min_price} and max price is {max_price}.")
+        
     conn.commit()
     conn.close()
 
