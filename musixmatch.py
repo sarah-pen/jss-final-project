@@ -5,14 +5,23 @@ import matplotlib.pyplot as plt
 
 api_key = "4ced0fe04de2090cb8f068ca309e8d96"
 base_url = "https://api.musixmatch.com/ws/1.1/"
-database = 'music.db'
+database = "music.db"
+
+#checks if existing data for artist exists
+def artist_exists(artist_name, table_name, database):
+    conn = sqlite3.connect(database)
+    cursor = conn.cursor()
+    cursor.execute(f'SELECT 1 FROM {table_name} WHERE artist = ?', (artist_name,))
+    exists = cursor.fetchone() is not None
+    conn.close()
+    return exists
 
 #inserts or updates the artist's rating.
 def add_rating(artist_name, rating, database):
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
     cursor.execute('CREATE TABLE IF NOT EXISTS Ratings (artist TEXT PRIMARY KEY, rating INTEGER)')
-    cursor.execute('INSERT OR REPLACE INTO Ratings (artist, rating) VALUES (?, ?)', (artist_name, rating))
+    cursor.execute('INSERT OR IGNORE INTO Ratings (artist, rating) VALUES (?, ?)', (artist_name, rating))
     conn.commit()
     conn.close()
 
@@ -21,7 +30,7 @@ def add_artist_country(artist_name, country, database):
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
     cursor.execute('CREATE TABLE IF NOT EXISTS ArtistCountry (artist TEXT PRIMARY KEY, country TEXT)')
-    cursor.execute('INSERT OR REPLACE INTO ArtistCountry (artist, country) VALUES (?, ?)', (artist_name, country))
+    cursor.execute('INSERT OR IGNORE INTO ArtistCountry (artist, country) VALUES (?, ?)', (artist_name, country))
     conn.commit()
     conn.close()
 
@@ -80,21 +89,29 @@ def get_artist_country_from_musixmatch(artist_name, api_key, database):
     return "Error or artist not found"
 
 def main():
-    artists = get_artists_from_db(database)
-    for artist in artists:
-        rating = get_artist_rating_from_musixmatch(artist, api_key)
-        if rating is not None:
-            add_rating(artist, rating, database)
-            print(f"Updated rating: {artist}, Rating: {rating}")
-        else:
-            print(f"Rating not found: {artist}")
 
-        country = get_artist_country_from_musixmatch(artist, api_key, database)
-        if country is not None:
-            add_artist_country(artist, country, database)
-            print(f"Updated country: {artist}, Country: {country}")
+    artists = get_artists_from_db(database)
+
+    for artist in artists:
+        if not artist_exists(artist, 'Ratings', database):
+            rating = get_artist_rating_from_musixmatch(artist, api_key, database)
+            if rating is not None:
+                add_rating(artist, rating, database)
+                print(f"Updated rating: {artist}, Rating: {rating}")
+            else:
+                print(f"Rating not found: {artist}")
         else:
-            print(f"Country not found: {artist}")
+            print(f"Rating for {artist} already exists.")
+
+        if not artist_exists(artist, 'ArtistCountry', database):
+            country = get_artist_country_from_musixmatch(artist, api_key, database)
+            if country is not None:
+                add_artist_country(artist, country, database)
+                print(f"Updated country: {artist}, Country: {country}")
+            else:
+                print(f"Country not found: {artist}")
+        else:
+            print(f"Country for {artist} already exists.")
 
 
 if __name__ == "__main__":
