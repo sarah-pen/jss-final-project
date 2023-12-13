@@ -34,6 +34,7 @@ def get_top_days(cur, conn):
       datetime_obj = dt.datetime(year, month, day)
       weekday = calendar.day_name[datetime_obj.weekday()]
       weekday_dict[weekday] += 1
+    conn.commit()
     return weekday_dict
 
 def get_top_genres(cur, conn):
@@ -57,6 +58,7 @@ def get_top_countries(cur, conn):
         else:
             country_list.append((key, country_dict[key]))
     country_list.sort(reverse=True, key=lambda x:x[1])
+    conn.commit()
     # print(country_list[0:5])
     return country_list[0:5]
 
@@ -65,6 +67,7 @@ def get_top_artists(cur, conn):
     cur.execute('SELECT name, plays from Artists')
     artists_plays = cur.fetchall()
     # print(artists_plays[0:15])
+    conn.commit()
     return artists_plays[0:15]
 
 def concerts_in_midwest(cur, conn):
@@ -83,15 +86,20 @@ def concerts_in_midwest(cur, conn):
     list.append(cur.fetchall())
     concerts_list = []
     for concert in list:
-        concert = concert[0]
-        id = concert[0]
-        city_id = concert[1]
-        cur.execute('SELECT name FROM Artists WHERE id=?',(id,))
+        # concert = concert[0]
+        if len(concert) == 0:
+            continue
+        artist_id = concert[0][0]
+        city_id = concert[0][1]
+        cur.execute('SELECT name FROM Artists WHERE id=?',(artist_id,))
         artist = cur.fetchall()[0][0]
         cur.execute('SELECT name FROM Cities WHERE city_id=?',(city_id,))
         city = cur.fetchall()[0][0]
-        # print(f"{artist} in {city} on {concert[2]}")
-        concerts_list.append({'artist': artist, 'city': city, 'date': concert[2]})
+        date = concert[0][2]
+        print(f"{artist} in {city} on {date}")
+        concerts_list.append({'artist': artist, 'city': city, 'date': date})
+
+    conn.commit()
     return concerts_list
 
 
