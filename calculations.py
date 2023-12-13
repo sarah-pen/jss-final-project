@@ -53,6 +53,7 @@ def get_top_artists(cur, conn):
     conn.commit()
     return artists_plays[0:15]
 
+
 def concerts_in_midwest(cur, conn):
     list = []
     midwest = [15, 23, 62, 13, 7, 11]
@@ -80,14 +81,16 @@ def concerts_in_midwest(cur, conn):
     return concerts_list
 
 
-conn = sqlite3.connect("music.db")
-cur = conn.cursor()
 
 def main():
-    # most_common_days_concerts(cur, conn)
-    # get_top_countries(cur, conn)
-    # get_top_artists(cur, conn)
+    conn = sqlite3.connect("music.db")
+    cur = conn.cursor()
+
+    get_top_days(cur, conn)
+    get_top_countries(cur, conn)
+    get_top_artists(cur, conn)
     concerts_in_midwest(cur, conn)
+    
     conn.commit()
     conn.close()
 
