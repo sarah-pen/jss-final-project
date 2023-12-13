@@ -13,7 +13,7 @@ database = "music.db"
 
 def get_artists(conn, cur):
     '''
-    Retrieves artists from LastFM table and returns them in a list
+    Retrieves artists from Artists table and returns them in a list
     '''
     cur.execute('SELECT name FROM Artists')
     artists = cur.fetchall()

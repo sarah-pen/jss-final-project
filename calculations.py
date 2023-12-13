@@ -39,6 +39,7 @@ def get_top_countries(cur, conn):
                 ORDER BY COUNT(Artists.id) DESC
                 LIMIT 5
                 ''')
+    conn.commit()
     return [(row[0], row[1]) for row in cur.fetchall()]
 
     # cur.execute('SELECT country FROM ArtistCountry')
