@@ -4,8 +4,8 @@ import sqlite3
 api_key = "28057900aa8badddae0f85dbdfb8848b"
 username = "Sarah297"
 base_url = 'http://ws.audioscrobbler.com/2.0/'
-# database = 'music.db'
-database = 'test.db'
+database = 'music.db'
+# database = 'test.db'
 
 class Counter:
     def __init__(self):
