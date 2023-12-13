@@ -1,13 +1,13 @@
 SI 206: Our Findings
 
 Our first metric that we calculated was the percentage of concerts that occured on each day of the week, based on a sampling of artists from TicketMaster.
-Sunday: 4% of concerts
-Monday: 16% of concerts
-Tuesday: 12% of concerts
-Wednesday: 24% of concerts
-Thursday: 8% of concerts
-Friday: 12% of concerts
-Saturday: 24% of concerts
+Sunday: 18% of concerts
+Monday: 11% of concerts
+Tuesday: 6% of concerts
+Wednesday: 8% of concerts
+Thursday: 14% of concerts
+Friday: 21% of concerts
+Saturday: 19% of concerts
 
 Our second metric that we calculated was the top artists listened to by the user, which in this case is Sarah H.
 Green Day: 13283 total plays
@@ -27,12 +27,16 @@ Skating Polly: 2311 total plays
 Metallica: 1968 total plays
 
 Our third metric that we calculated was the top 5 countries that all of the user's artists are from.
-US: 12 artists
-GB: 5 artists
+US: 64 artists
+GB: 18 artists
+CA: 3 artists
+JP: 2 artists
+DE: 2 artists
 
 Here is a list of concerts in the Midwest, based on your top artists:
-Metallica in Phoenix on 2024-09-18
-Muse in Maryland Heights on 2024-08-15
-Pink Floyd in Milwaukee on 2024-08-24
-Iron Maiden in Minneapolis on 2024-08-17
-Car Seat Headrest in Pittsburgh on 2024-09-01
+100 gecs in Minneapolis on 2024-08-06
+100 gecs in Pittsburgh on 2024-09-01
+100 gecs in Detroit on 2024-08-12
+100 gecs in Cincinnati on 2024-08-22
+100 gecs in Toronto on 2024-08-01
+100 gecs in Philadelphia on 2024-07-26

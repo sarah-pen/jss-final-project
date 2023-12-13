@@ -73,9 +73,14 @@ def concerts_in_midwest(cur, conn):
     Takes cur and conn, returns all the events in the Events table that occur in popular Midwest cities
     '''
     list = []
-    midwest = [15, 23, 62, 13, 7, 11]
+    midwest = ['Minneapolis', 'Pittsburgh', 'Detroit', 'Cincinnati', 'Toronto', 'Philadelphia']
     for city in midwest:
-        cur.execute('SELECT show_id, city_id, date FROM Events WHERE city_id=?', (city,))
+        cur.execute('''
+                    SELECT Events.artist_id, Events.city_id, Events.date
+                    FROM Cities
+                    JOIN Events ON Events.city_id = Cities.id
+                    WHERE Cities.name = ?
+                    ''', (city,))
         list.append(cur.fetchall())
 
     concerts_list = []
