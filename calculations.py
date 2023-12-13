@@ -9,7 +9,6 @@ def get_top_days(cur, conn):
     '''
     cur.execute('SELECT date FROM Events_Final')
     days = cur.fetchall()
-    # weekday_dict = {'Sunday':0, 'Monday': 0, 'Tuesday': 0, 'Wednesday': 0, 'Thursday': 0, 'Friday': 0, 'Saturday':0}
     weekday_dict = {}
     for date in days:
     #   print(type(date))
@@ -47,6 +46,9 @@ def get_top_countries(cur, conn):
 
 
 def get_top_artists(cur, conn):
+    '''
+    Takes cur and conn, returns the top 15 artists from Artists table
+    '''
     cur.execute('SELECT name, plays from Artists')
     artists_plays = cur.fetchall()
     # print(artists_plays[0:15])
@@ -55,12 +57,14 @@ def get_top_artists(cur, conn):
 
 
 def concerts_in_midwest(cur, conn):
+    '''
+    Takes cur and conn, returns all the events in the Events_Final table that occur in popular Midwest cities
+    '''
     list = []
     midwest = [15, 23, 62, 13, 7, 11]
     for city in midwest:
         cur.execute('SELECT id, city_id, date FROM Events_Final WHERE city_id=?', (city,))
         list.append(cur.fetchall())
-
 
     concerts_list = []
     for concert in list:
@@ -90,7 +94,7 @@ def main():
     get_top_countries(cur, conn)
     get_top_artists(cur, conn)
     concerts_in_midwest(cur, conn)
-    
+
     conn.commit()
     conn.close()
 
