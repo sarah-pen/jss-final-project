@@ -7,9 +7,9 @@ def get_top_days(cur, conn):
     '''
     Takes cur and conn, returns a dictionary of weekdays with the number of concerts on each weekday.
     '''
-    cur.execute('SELECT date FROM Events_Final')
+    cur.execute('SELECT date FROM Events')
     days = cur.fetchall()
-    weekday_dict = {}
+    weekday_dict = {'Sunday':0,'Monday':0,'Tuesday':0,'Wednesday':0,'Thursday':0,'Friday':0,'Saturday':0}
     for date in days:
     #   print(type(date))
       date = date[0]
@@ -28,20 +28,33 @@ def get_top_countries(cur, conn):
     '''
     Takes cur and conn, returns the top 5 countries based on artists in the database
     '''
-    cur.execute('SELECT country FROM ArtistCountry')
-    countries = cur.fetchall()
-    country_dict = {}
-    for country in countries:
-        country_dict[country[0]] = country_dict.get(country[0], 0) +1
-    country_list = []
-    for key in country_dict:
-        if key == '':
-            continue
-        else:
-            country_list.append((key, country_dict[key]))
-    country_list.sort(reverse=True, key=lambda x:x[1])
-    conn.commit()
-    return country_list[0:5]
+    cur.execute('''
+                SELECT
+                    Countries.name,
+                    COUNT(Artists.id)
+                FROM Countries
+                INNER JOIN Artists ON Artists.country_id = Countries.id
+                WHERE Countries.name != ''
+                GROUP BY Countries.name
+                ORDER BY COUNT(Artists.id) DESC
+                LIMIT 5
+                ''')
+    return [(row[0], row[1]) for row in cur.fetchall()]
+
+    # cur.execute('SELECT country FROM ArtistCountry')
+    # countries = cur.fetchall()
+    # country_dict = {}
+    # for country in countries:
+    #     country_dict[country[0]] = country_dict.get(country[0], 0) +1
+    # country_list = []
+    # for key in country_dict:
+    #     if key == '':
+    #         continue
+    #     else:
+    #         country_list.append((key, country_dict[key]))
+    # country_list.sort(reverse=True, key=lambda x:x[1])
+    # conn.commit()
+    # return country_list[0:5]
 
 
 def get_top_artists(cur, conn):
@@ -57,12 +70,12 @@ def get_top_artists(cur, conn):
 
 def concerts_in_midwest(cur, conn):
     '''
-    Takes cur and conn, returns all the events in the Events_Final table that occur in popular Midwest cities
+    Takes cur and conn, returns all the events in the Events table that occur in popular Midwest cities
     '''
     list = []
     midwest = [15, 23, 62, 13, 7, 11]
     for city in midwest:
-        cur.execute('SELECT id, city_id, date FROM Events_Final WHERE city_id=?', (city,))
+        cur.execute('SELECT show_id, city_id, date FROM Events WHERE city_id=?', (city,))
         list.append(cur.fetchall())
 
     concerts_list = []
@@ -74,7 +87,7 @@ def concerts_in_midwest(cur, conn):
         city_id = concert[0][1]
         cur.execute('SELECT name FROM Artists WHERE id=?',(artist_id,))
         artist = cur.fetchall()[0][0]
-        cur.execute('SELECT name FROM Cities WHERE city_id=?',(city_id,))
+        cur.execute('SELECT name FROM Cities WHERE id=?',(city_id,))
         city = cur.fetchall()[0][0]
         date = concert[0][2]
         print(f"{artist} in {city} on {date}")
