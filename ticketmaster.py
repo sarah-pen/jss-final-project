@@ -139,23 +139,24 @@ def event_info(filename):
         # loop through events
         for event in events:
             inner_d = {}
-            # name = event["name"]
             date = event["dates"]["start"]["localDate"]
             if "_embedded" in event:
-                if "venues" in event["_embedded"]:
+                try:
                     city = event["_embedded"]["venues"][0]["city"]["name"]
-                else:
+                except:
                     city = None
-                if "attractions" in event["_embedded"]:
+                try:
                     artist = event["_embedded"]["attractions"][0]["name"]
-                else:
+                except:
                     artist = event["name"]
 
-                inner_d["city"] = city
-                inner_d["date"] = date
-
             else:
-                pass
+                city = None
+                artist = event["name"]
+                date = None
+            
+            inner_d["city"] = city
+            inner_d["date"] = date
 
             if "priceRanges" in event:
                 min_price = event["priceRanges"][0].get("min", None)
@@ -165,6 +166,8 @@ def event_info(filename):
             else:
                 pass
 
+            if (city == None) and (date == None):
+                continue
             if artist not in events_d:
                 events_d[artist] = [inner_d]
             else:
