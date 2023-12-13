@@ -1,0 +1,42 @@
+SI 206: Our Findings
+
+Our first metric that we calculated was the percentage of concerts that occured on each day of the week, based on a sampling of artists from TicketMaster.
+Sunday: 18% of concerts
+Monday: 11% of concerts
+Tuesday: 6% of concerts
+Wednesday: 8% of concerts
+Thursday: 14% of concerts
+Friday: 21% of concerts
+Saturday: 19% of concerts
+
+Our second metric that we calculated was the top artists listened to by the user, which in this case is Sarah H.
+Green Day: 13283 total plays
+Paramore: 6850 total plays
+My Chemical Romance: 6520 total plays
+Radiohead: 6026 total plays
+Fall Out Boy: 5195 total plays
+Ozma: 5144 total plays
+Iron Maiden: 5095 total plays
+Weezer: 4750 total plays
+Kero Kero Bonito: 4368 total plays
+Panic! at the Disco: 4050 total plays
+Car Seat Headrest: 3489 total plays
+Megadeth: 2958 total plays
+Pink Floyd: 2610 total plays
+Skating Polly: 2311 total plays
+Metallica: 1968 total plays
+
+Our third metric that we calculated was the top 5 countries that all of the user's artists are from.
+US: 64 artists
+GB: 18 artists
+CA: 3 artists
+JP: 2 artists
+DE: 2 artists
+
+Here is a list of concerts in the Midwest, based on your top artists:
+100 gecs in Minneapolis on 2024-08-06
+100 gecs in Pittsburgh on 2024-09-01
+100 gecs in Detroit on 2024-08-12
+100 gecs in Cincinnati on 2024-08-22
+100 gecs in Toronto on 2024-08-01
+100 gecs in Philadelphia on 2024-07-26
