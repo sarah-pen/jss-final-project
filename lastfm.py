@@ -27,8 +27,16 @@ def get_and_insert_top_artists(database, counter, period='alltime', limit='125')
     cursor = conn.cursor()
 
 
-    cursor.execute('CREATE TABLE IF NOT EXISTS Artists (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, plays INTEGER)')
-    # cursor.execute('INSERT OR IGNORE INTO Artists (name, plays) VALUES (?, ?)', (artist, plays))
+    cursor.execute('''
+                   CREATE TABLE IF NOT EXISTS Artists (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL UNIQUE,
+                        rating INTEGER NOT NULL DEFAULT 0,
+                        country_id INTEGER DEFAULT NULL,
+                        plays INTEGER NOT NULL,
+                        FOREIGN KEY (country_id) REFERENCES Countries(id)
+                   )
+                   ''')
     for artist in data['topartists']['artist']:
         artist_name = artist['name']
         plays = int(artist['playcount'])
@@ -65,8 +73,8 @@ def get_and_insert_top_songs(database, counter, period='alltime', limit='125'):
 
     cursor.execute('''CREATE TABLE IF NOT EXISTS Songs (
                   id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  artist_id INTEGER,
-                  name TEXT UNIQUE,
+                  artist_id INTEGER NOT NULL,
+                  name TEXT UNIQUE NOT NULL,
                   plays INTEGER,
                   FOREIGN KEY (artist_id) REFERENCES Artists(id)
                   )''')
